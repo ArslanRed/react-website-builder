@@ -8,22 +8,18 @@ import EcommerceCSS from "../components/AllThemes/Ecommerce.css?raw";
 
 import Header1Code from "../components/Header1.jsx?raw";
 import Header2Code from "../components/Header2.jsx?raw";
-// import HeroCode from "../components/Hero.jsx?raw";
-// import Footer1Code from "../components/Footer1.jsx?raw";
 
 import Header1CSS from "../styles/Header1.module.css?raw";
 import Header2CSS from "../styles/Header2.module.css?raw";
-
 
 // Map component IDs to their source code & CSS
 const componentSources = {
   header1: { code: Header1Code, css: Header1CSS },
   header2: { code: Header2Code, css: Header2CSS },
-  // hero: { code: HeroCode, css: HeroCSS },
-  // footer1: { code: Footer1Code, css: Footer1CSS },
 };
 
 export default function ExportButton({ themeComponents, content, mode }) {
+  // Original export (prebuilt theme or predefined components)
   const handleExport = async () => {
     const zip = new JSZip();
 
@@ -32,7 +28,7 @@ export default function ExportButton({ themeComponents, content, mode }) {
       zip.file("Ecommerce.jsx", EcommerceCode);
       zip.file("Ecommerce.css", EcommerceCSS);
     } else if (themeComponents.length > 0) {
-      // Case 2: Custom-built theme
+      // Case 2: Custom-built theme from predefined components
       themeComponents.forEach((compId) => {
         if (componentSources[compId]) {
           const { code, css } = componentSources[compId];
@@ -54,19 +50,287 @@ export default function ExportButton({ themeComponents, content, mode }) {
     saveAs(blob, "theme-export.zip");
   };
 
+const handleLiveExport = async () => {
+  const editor = document.querySelector(".theme-container");
+  if (!editor) {
+    alert("No theme content found to export!");
+    return;
+  }
+
+  // Existing logic: convert live HTML to JSX string
+  let html = editor.innerHTML.trim();
+  let jsx = html
+    .replace(/class=/g, "className=")
+    .replace(/for=/g, "htmlFor=")
+    .replace(/style="([^"]*)"/g, (match, styles) => {
+      const styleObj = styles
+        .split(";")
+        .filter(Boolean)
+        .map((rule) => {
+          let [prop, value] = rule.split(":");
+          if (!prop || !value) return "";
+          prop = prop.trim().replace(/-([a-z])/g, (_, char) =>
+            char.toUpperCase()
+          );
+          value = value.trim();
+          return `${prop}: "${value}"`;
+        })
+        .join(", ");
+      return `style={{ ${styleObj} }}`;
+    });
+
+  // Extract CSS as before
+  let css = "";
+  for (const sheet of document.styleSheets) {
+    try {
+      for (const rule of sheet.cssRules) {
+        if (rule.type === CSSRule.STYLE_RULE) {
+          const selectors = rule.selectorText.split(",");
+          const matched = selectors.some((sel) => {
+            try {
+              return editor.querySelector(sel.trim()) !== null;
+            } catch {
+              return false;
+            }
+          });
+          if (matched) {
+            css += rule.cssText + "\n";
+          }
+        } else if (rule.type === CSSRule.MEDIA_RULE) {
+          let mediaCss = "";
+          for (const innerRule of rule.cssRules) {
+            if (innerRule.type === CSSRule.STYLE_RULE) {
+              const selectors = innerRule.selectorText.split(",");
+              const matched = selectors.some((sel) => {
+                try {
+                  return editor.querySelector(sel.trim()) !== null;
+                } catch {
+                  return false;
+                }
+              });
+              if (matched) {
+                mediaCss += innerRule.cssText + "\n";
+              }
+            }
+          }
+          if (mediaCss) {
+            css += `@media ${rule.conditionText} {\n${mediaCss}}\n`;
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore CORS stylesheets
+    }
+  }
+
+  const zip = new JSZip();
+
+  // Add live JSX + CSS snapshot
+  zip.file(
+    "CustomTheme.jsx",
+    `export default function CustomTheme() {\n  return (\n    <>${jsx}</>\n  );\n}`
+  );
+  zip.file("CustomTheme.css", css);
+
+  // NEW: Add source code and CSS files of selected components
+  if (themeComponents && themeComponents.length > 0) {
+    themeComponents.forEach((compId) => {
+      if (componentSources[compId]) {
+        const { code, css } = componentSources[compId];
+        zip.file(`${compId}.jsx`, code);
+        if (css) {
+          zip.file(`${compId}.css`, css);
+        }
+      }
+    });
+  }
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  saveAs(blob, "custom-theme-export.zip");
+};
+/*========== */
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+const handleHybridExport = async () => {
+  const editor = document.querySelector(".theme-container");
+  if (!editor) {
+    alert("No theme content found to export!");
+    return;
+  }
+
+  // Convert live HTML to JSX string (same as your existing logic)
+  let html = editor.innerHTML.trim();
+  let liveJsx = html
+    .replace(/class=/g, "className=")
+    .replace(/for=/g, "htmlFor=")
+    .replace(/style="([^"]*)"/g, (match, styles) => {
+      const styleObj = styles
+        .split(";")
+        .filter(Boolean)
+        .map((rule) => {
+          let [prop, value] = rule.split(":");
+          if (!prop || !value) return "";
+          prop = prop.trim().replace(/-([a-z])/g, (_, char) =>
+            char.toUpperCase()
+          );
+          value = value.trim();
+          return `${prop}: "${value}"`;
+        })
+        .join(", ");
+      return `style={{ ${styleObj} }}`;
+    });
+
+  // Extract CSS for elements inside .theme-container (same as your existing logic)
+  let css = "";
+  for (const sheet of document.styleSheets) {
+    try {
+      for (const rule of sheet.cssRules) {
+        if (rule.type === CSSRule.STYLE_RULE) {
+          const selectors = rule.selectorText.split(",");
+          const matched = selectors.some((sel) => {
+            try {
+              return editor.querySelector(sel.trim()) !== null;
+            } catch {
+              return false;
+            }
+          });
+          if (matched) {
+            css += rule.cssText + "\n";
+          }
+        } else if (rule.type === CSSRule.MEDIA_RULE) {
+          let mediaCss = "";
+          for (const innerRule of rule.cssRules) {
+            if (innerRule.type === CSSRule.STYLE_RULE) {
+              const selectors = innerRule.selectorText.split(",");
+              const matched = selectors.some((sel) => {
+                try {
+                  return editor.querySelector(sel.trim()) !== null;
+                } catch {
+                  return false;
+                }
+              });
+              if (matched) {
+                mediaCss += innerRule.cssText + "\n";
+              }
+            }
+          }
+          if (mediaCss) {
+            css += `@media ${rule.conditionText} {\n${mediaCss}}\n`;
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore CORS stylesheets
+    }
+  }
+
+  const zip = new JSZip();
+
+  // Add live snapshot files
+  zip.file(
+    "LiveSnapshot.jsx",
+    `export default function LiveSnapshot() {\n  return (\n    <>${liveJsx}</>\n  );\n}`
+  );
+  zip.file("LiveSnapshot.css", css);
+
+  // Add original source component files
+  if (themeComponents && themeComponents.length > 0) {
+    themeComponents.forEach((compId) => {
+      if (componentSources[compId]) {
+        const { code, css } = componentSources[compId];
+        zip.file(`${compId}.jsx`, code);
+        if (css) {
+          zip.file(`${compId}.css`, css);
+        }
+      }
+    });
+  }
+
+  // Create modular CustomTheme.jsx importing and rendering components
+  const importsStr = themeComponents
+    .map((compId) => `import ${capitalize(compId)} from "./${compId}.jsx";`)
+    .join("\n");
+  const renderStr = themeComponents
+    .map((compId) => `      <${capitalize(compId)} />`)
+    .join("\n");
+
+  const customThemeCode = `${importsStr}
+
+export default function CustomTheme() {
   return (
+    <div>
+${renderStr}
+    </div>
+  );
+}
+`;
+
+  zip.file("CustomTheme.jsx", customThemeCode);
+
+  // Add a README.md
+  const readme = `# Exported Theme
+
+- LiveSnapshot.jsx/css: Your exact current customized layout snapshot.
+- CustomTheme.jsx: Modular component-based theme you can scale & modify.
+- Component source files: Original React components & styles used.
+
+Use LiveSnapshot.jsx for a frozen look or start editing from CustomTheme.jsx and components.
+`;
+
+  zip.file("README.md", readme);
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  saveAs(blob, "hybrid-theme-export.zip");
+};
+
+  return (
+    <div style={{ display: "flex", gap: "10px" }}>
+      {/* Original export button */}
+      <button
+        onClick={handleExport}
+        style={{
+          backgroundColor: "#4f46e5",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+          padding: "0.5rem 1rem",
+          cursor: "pointer",
+        }}
+      >
+        Export Theme
+      </button>
+
+      {/* New runtime export button */}
+      <button
+        onClick={handleLiveExport}
+        style={{
+          backgroundColor: "#16a34a",
+          color: "white",
+          border: "none",
+          borderRadius: 6,
+          padding: "0.5rem 1rem",
+          cursor: "pointer",
+        }}
+      >
+        Export Live JSX/CSS
+      </button>
+         {/* New hybrid export button */}
     <button
-      onClick={handleExport}
+      onClick={handleHybridExport}
       style={{
-        backgroundColor: "#4f46e5",
+        backgroundColor: "#db7e00",
         color: "white",
         border: "none",
         borderRadius: 6,
         padding: "0.5rem 1rem",
         cursor: "pointer",
       }}
+      title="Export live snapshot + original components + modular CustomTheme.jsx"
     >
-      Export Theme
+      Export Hybrid Theme
     </button>
+    </div>
   );
 }

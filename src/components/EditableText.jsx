@@ -1,15 +1,15 @@
 import React, { useEffect } from 'react';
 import { useUserTheme } from '../contexts/UserThemeContext';
+import './EditableText.css'; // import your CSS styles
 
 export default function EditableText({ themeId }) {
   const { userThemeConfig, setUserThemeConfig } = useUserTheme();
 
   useEffect(() => {
-    // When theme changes, reset content
     if (themeId === 'ecommerce') {
       setUserThemeConfig({
         themeId,
-        components: ['header1', 'hero', 'footer1'], // example
+        components: ['header1', 'hero', 'footer1'],
         content: {
           heading: 'Welcome to Your E-Commerce Store',
           paragraph: 'Start adding your amazing products today!',
@@ -49,16 +49,15 @@ export default function EditableText({ themeId }) {
     }
   }, [themeId, setUserThemeConfig]);
 
-  // Update heading & paragraph in user config
   function onHeadingChange(newHeading) {
-    setUserThemeConfig((prev) => ({
+    setUserThemeConfig(prev => ({
       ...prev,
       content: { ...prev.content, heading: newHeading },
     }));
   }
 
   function onParagraphChange(newParagraph) {
-    setUserThemeConfig((prev) => ({
+    setUserThemeConfig(prev => ({
       ...prev,
       content: { ...prev.content, paragraph: newParagraph },
     }));
@@ -70,13 +69,13 @@ export default function EditableText({ themeId }) {
         type="text"
         value={userThemeConfig.content.heading}
         onChange={e => onHeadingChange(e.target.value)}
-        style={{ fontSize: '2rem', fontWeight: 'bold', width: '100%', marginBottom: '1rem' }}
+        className="editable-heading"
         placeholder="Edit Heading"
       />
       <textarea
         value={userThemeConfig.content.paragraph}
         onChange={e => onParagraphChange(e.target.value)}
-        style={{ width: '100%', minHeight: '150px', fontSize: '1.1rem', padding: '0.5rem' }}
+        className="editable-paragraph"
         placeholder="Edit Paragraph"
       />
     </div>

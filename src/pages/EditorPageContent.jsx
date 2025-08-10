@@ -145,16 +145,17 @@ export default function EditorPageContent() {
             {selectedTheme?.fullComponent === 'Ecommerce' ? (
               <Ecommerce />
             ) : (
-              <>
+              <div className="theme-container">
                 {/* ThemeContainer renders selected components with content */}
                 <ThemeContainer
                   themeComponents={userThemeConfig.components}
                   content={userThemeConfig.content}
                 />
-
+                
                 {/* Editable text inputs to modify content */}
                 <EditableText themeId={userThemeConfig.themeId} />
-              </>
+              </div> 
+             
             )}
           </>
         )}
