@@ -1,0 +1,52 @@
+.site-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 2rem;
+  background-color: #4f46e5;
+  color: white;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.site-nav .nav-link {
+  margin-left: 2rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease;
+}
+
+.site-nav .nav-link:hover {
+  color: #c7d2fe;
+}
+
+/* Main content wrapper grows to fill space */
+.content-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;  /* Center horizontally */
+  padding: 1rem;
+  flex-grow: 1;   /* Grow to fill vertical space */
+  /* Remove min-height and centering */
+}
+
+/* Footer fixed height */
+.site-footer {
+  background-color: #4f46e5;
+  color: white;
+  text-align: center;
+  padding: 1rem 0;
+  font-size: 0.9rem;
+}
