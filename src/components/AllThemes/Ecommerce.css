@@ -629,3 +629,58 @@ a:focus {
     height: 100px;
   }
 }
+/* Product card improvements */
+.productParent{
+  padding: 20px;
+  margin-top: 10%;
+}
+.product-card {
+  display: flex;
+  flex-direction: column;
+  background-color: #fbfcfd;
+   justify-content: center;
+ align-items: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(31, 22, 209, 0.849);
+}
+
+.product-card__image-wrapper {
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.product-card__image-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(214, 38, 38, 0.15), transparent 60%);
+  pointer-events: none;
+}
+
+.product-card__actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem 1rem;
+  border-top: 1px solid #779ae0;
+}
+
+.product-card__actions .btn {
+  flex: 1;
+  font-size: 0.9rem;
+  padding: 0.5rem;
+}
+
+/* Slightly more vibrant Buy Now */
+.btn--buynow {
+  background-color: #10b981;
+}
+.btn--buynow:hover,
+.btn--buynow:focus {
+  background-color: #059669;
+}

@@ -149,8 +149,9 @@ function Categories({ categories, selectedCategory, onSelectCategory }) {
 }
 
 // --- Product Card ---
-function ProductCard({ product, onAddToCart, onSelect }) {
+function ProductCard({ product, onAddToCart, onSelect, onBuyNow }) {
   return (
+    
     <article
       className="product-card"
       onClick={() => onSelect(product)}
@@ -158,42 +159,63 @@ function ProductCard({ product, onAddToCart, onSelect }) {
       role="button"
       onKeyDown={(e) => { if (e.key === 'Enter') onSelect(product); }}
     >
-      <img
-        src={product.image}
-        alt={product.name}
-        className="product-card__image"
-        loading="lazy"
-      />
+      <div className="product-card__image-wrapper">
+        <img
+          src={product.image}
+          alt={product.name}
+          className="product-card__image"
+          loading="lazy"
+        />
+      </div>
       <div className="product-card__info">
         <h3 className="product-card__name">{product.name}</h3>
         <p className="product-card__price">${product.price.toFixed(2)}</p>
-        <p className="product-card__rating" aria-label={`Rating: ${product.rating} out of 5`}>
+        <p
+          className="product-card__rating"
+          aria-label={`Rating: ${product.rating} out of 5`}
+        >
           ⭐ {product.rating}
         </p>
       </div>
-      <button
-        className="btn btn--addtocart"
-        onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
-        aria-label={`Add ${product.name} to cart`}
-      >
-        Add to Cart
-      </button>
+
+      <div className="product-card__actions">
+        <button
+          className="btn btn--addtocart"
+          onClick={(e) => { e.stopPropagation(); onAddToCart(product); }}
+          aria-label={`Add ${product.name} to cart`}
+        >
+          Add to Cart
+        </button>
+        <button
+          className="btn btn--buynow"
+          onClick={(e) => { e.stopPropagation(); onBuyNow?.(product); }}
+          aria-label={`Buy ${product.name} now`}
+        >
+          Buy Now
+        </button>
+      </div>
     </article>
+    
   );
 }
+
 
 // --- Product Listing ---
 function ProductListing({ products, onAddToCart, onSelectProduct }) {
   return (
+    <div className='productParent'>
+      <h3> All Products</h3>
     <section className="product-listing" aria-label="Product listing">
       {products.length === 0 ? (
         <p className="product-listing__empty">No products found.</p>
-      ) : (
+      ) :  (
         products.map((p) => (
           <ProductCard key={p.id} product={p} onAddToCart={onAddToCart} onSelect={onSelectProduct} />
         ))
-      )}
+      )
+      }
     </section>
+    </div>
   );
 }
 
@@ -210,6 +232,7 @@ function ProductDetail({ product, onAddToCart }) {
         <p className="product-detail__rating"><strong>Rating:</strong> ⭐ {product.rating}</p>
         <p className="product-detail__description">{product.description}</p>
         <button className="btn btn--cta" onClick={() => onAddToCart(product)}>Add to Cart</button>
+        
       </div>
     </section>
   );
@@ -295,7 +318,7 @@ export default function ECommerceDemo() {
 const productsData = [
   { id: 1, name: 'Smartphone', price: 599, rating: 4.5, 
     image: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=150&q=80', 
-    description: 'Latest model smartphone.', category: 'Electronics', featured: true },
+    description: 'Iphone/Samsung.', category: 'Electronics', featured: true },
   { id: 2, name: 'T-Shirt', price: 29.99, rating: 4.0, 
     image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=150&q=80', 
     description: 'Comfortable cotton t-shirt.', category: 'Clothing', featured: false },
@@ -311,7 +334,7 @@ const productsData = [
   price: 120,
   rating: 4.3,
   image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-  description: 'Bass Boosted Headphones.',
+  description: 'Latest Headphones.',
   category: 'Electronics',
   featured: true
 },
@@ -322,8 +345,8 @@ const productsData = [
 ];
 
   const categoriesData = [
-  { name: 'Electronics', image: 'https://images.unsplash.com/photo-1510552776732-43e0a815ee13?auto=format&fit=crop&w=150&q=80', priceRange: '$50 - $1000' },
-  { name: 'Clothing', image: 'https://images.unsplash.com/photo-1521334884684-d80222895322?auto=format&fit=crop&w=150&q=80', priceRange: '$10 - $200' },
+  { name: 'Electronics', image: 'https://images.unsplash.com/photo-1593344484962-796055d4a3a4?q=80&w=415&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', priceRange: '$50 - $1000' },
+  { name: 'Clothing', image: 'https://images.unsplash.com/photo-1525507119028-ed4c629a60a3?q=80&w=1035&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D', priceRange: '$10 - $200' },
   { name: 'Books', image: 'https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=150&q=80', priceRange: '$5 - $50' },
   { name: 'Home', image: 'https://images.unsplash.com/photo-1493809842364-78817add7ffb?auto=format&fit=crop&w=150&q=80', priceRange: '$20 - $500' },
 ];
@@ -359,7 +382,7 @@ const productsData = [
       <Header cartCount={cart.length} onSearch={handleSearch} />
       <HeroBanner />
       <FeaturedItems featuredProducts={featuredProducts} onAddToCart={handleAddToCart} />
-      <div className="main-layout">
+      
         <Categories
           categories={categoriesData}
           selectedCategory={selectedCategory}
@@ -372,7 +395,6 @@ const productsData = [
         />
         <ProductDetail product={selectedProduct} onAddToCart={handleAddToCart} />
         <ShoppingCart cartItems={cart} onRemoveItem={handleRemoveFromCart} />
-      </div>
       <Footer />
     </>
   );
