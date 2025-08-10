@@ -1,0 +1,32 @@
+.theme-card {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  cursor: pointer;
+  width: 200px;
+  text-align: center;
+  user-select: none;
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.theme-card.selected {
+  border-color: #4f46e5;
+  box-shadow: 0 0 15px rgba(79, 70, 229, 0.6);
+}
+
+.theme-card img {
+  width: 100%;
+  border-radius: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.theme-card h3 {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.25rem;
+}
+
+.theme-card p {
+  font-size: 0.9rem;
+  color: #555;
+  margin: 0;
+}

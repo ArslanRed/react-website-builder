@@ -12,9 +12,10 @@ export default function HomePage() {
         <div className="hero-left">
           <h1>Build Your Dream Website Easily</h1>
           <p>Create stunning websites with customizable themes and drag & drop editing.</p>
-          <button 
+          <button
             className="btn-build"
             onClick={() => navigate('/editor')}
+            aria-label="Navigate to website builder editor"
           >
             Build Your Own Website
           </button>
@@ -23,6 +24,7 @@ export default function HomePage() {
           <img
             src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=800&q=80"
             alt="Website builder illustration"
+            loading="lazy"
           />
         </div>
       </section>
@@ -34,6 +36,6 @@ export default function HomePage() {
           Perfect for e-commerce, blogs, portfolios, and more!
         </p>
       </section>
-   </>
+    </>
   );
 }

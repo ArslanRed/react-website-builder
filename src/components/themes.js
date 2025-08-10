@@ -1,12 +1,10 @@
-// src/data/themes.js
 export const themes = [
   {
     id: 'ecommerce',
     name: 'E-Commerce',
     description: 'Sell your products with style',
     thumbnail: '/themes/ecommerce.png',
-    fullComponent: 'Ecommerce', 
-   
+    fullComponent: 'Ecommerce',
   },
   {
     id: 'portfolio',

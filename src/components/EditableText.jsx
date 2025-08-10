@@ -1,83 +1,31 @@
-import React, { useEffect } from 'react';
-import { useUserTheme } from '../contexts/UserThemeContext';
-import './EditableText.css'; // import your CSS styles
+import React, { useEffect, useRef } from 'react';
 
-export default function EditableText({ themeId }) {
-  const { userThemeConfig, setUserThemeConfig } = useUserTheme();
+export default function EditableText({ tag = 'p', text, onChange, className = '' }) {
+  const Tag = tag;
+  const ref = useRef(null);
 
   useEffect(() => {
-    if (themeId === 'ecommerce') {
-      setUserThemeConfig({
-        themeId,
-        components: ['header1', 'hero', 'footer1'],
-        content: {
-          heading: 'Welcome to Your E-Commerce Store',
-          paragraph: 'Start adding your amazing products today!',
-        },
-        styles: {},
-      });
-    } else if (themeId === 'portfolio') {
-      setUserThemeConfig({
-        themeId,
-        components: ['header2', 'hero'],
-        content: {
-          heading: 'My Portfolio',
-          paragraph: 'Showcase your work and projects.',
-        },
-        styles: {},
-      });
-    } else if (themeId === 'blog') {
-      setUserThemeConfig({
-        themeId,
-        components: ['header1', 'hero', 'footer1'],
-        content: {
-          heading: 'My Blog',
-          paragraph: 'Share your stories with the world.',
-        },
-        styles: {},
-      });
-    } else {
-      setUserThemeConfig({
-        themeId: null,
-        components: [],
-        content: {
-          heading: '',
-          paragraph: '',
-        },
-        styles: {},
-      });
+    if (ref.current && ref.current.innerText !== text) {
+      ref.current.innerText = text;
     }
-  }, [themeId, setUserThemeConfig]);
+  }, [text]);
 
-  function onHeadingChange(newHeading) {
-    setUserThemeConfig(prev => ({
-      ...prev,
-      content: { ...prev.content, heading: newHeading },
-    }));
-  }
-
-  function onParagraphChange(newParagraph) {
-    setUserThemeConfig(prev => ({
-      ...prev,
-      content: { ...prev.content, paragraph: newParagraph },
-    }));
-  }
+  const handleInput = (e) => {
+    onChange(e.currentTarget.innerText);
+  };
 
   return (
-    <div>
-      <input
-        type="text"
-        value={userThemeConfig.content.heading}
-        onChange={e => onHeadingChange(e.target.value)}
-        className="editable-heading"
-        placeholder="Edit Heading"
-      />
-      <textarea
-        value={userThemeConfig.content.paragraph}
-        onChange={e => onParagraphChange(e.target.value)}
-        className="editable-paragraph"
-        placeholder="Edit Paragraph"
-      />
-    </div>
+    <Tag
+      ref={ref}
+      contentEditable
+      suppressContentEditableWarning
+      className={`${className} editable-text`}
+      onInput={handleInput}
+      role="textbox"
+      aria-label={`Editable ${tag}`}
+      tabIndex={0}
+      spellCheck={false}
+      style={{ color: 'pink' }}
+    />
   );
 }

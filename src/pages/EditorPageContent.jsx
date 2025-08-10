@@ -13,13 +13,30 @@ export default function EditorPageContent() {
   const { userThemeConfig, setUserThemeConfig } = useUserTheme();
   const [mode, setMode] = useState('initial'); // initial | themeSelected | buildCustomTheme
 
-  const selectedTheme = themes.find(t => t.id === userThemeConfig.themeId);
+  const selectedTheme = themes.find((t) => t.id === userThemeConfig.themeId);
 
-  // When a theme is selected from the grid
   function handleSelectTheme(id) {
     setMode('themeSelected');
-    // Let EditableText update userThemeConfig defaults on its own
-    setUserThemeConfig(prev => ({ ...prev, themeId: id }));
+    // Set themeId and default components if theme has predefined components
+    const theme = themes.find((t) => t.id === id);
+    if (theme) {
+      if (theme.components) {
+        setUserThemeConfig({
+          themeId: id,
+          components: theme.components,
+          content: { heading: '', paragraph: '' },
+          styles: {},
+        });
+      } else {
+        // For fullComponent or unknown themes fallback
+        setUserThemeConfig({
+          themeId: id,
+          components: [],
+          content: { heading: '', paragraph: '' },
+          styles: {},
+        });
+      }
+    }
   }
 
   function handleShowThemes() {
@@ -42,6 +59,19 @@ export default function EditorPageContent() {
     });
   }
 
+  function handleAddComponent(compId) {
+    setUserThemeConfig((prev) => {
+      if (!prev.components.includes(compId)) {
+        return { ...prev, components: [...prev.components, compId] };
+      }
+      return prev;
+    });
+  }
+
+  function handleContentChange(newContent) {
+    setUserThemeConfig((prev) => ({ ...prev, content: newContent }));
+  }
+
   const showSidebar = mode === 'buildCustomTheme';
   const showCard = mode === 'initial';
   const showThemesGrid = mode === 'initial';
@@ -52,15 +82,8 @@ export default function EditorPageContent() {
       {showSidebar && (
         <SideBar
           options={components}
-          selectedId={userThemeConfig.components.length ? userThemeConfig.components[0] : ''}
-          onSelect={(compId) => {
-            setUserThemeConfig(prev => {
-              if (!prev.components.includes(compId)) {
-                return { ...prev, components: [...prev.components, compId] };
-              }
-              return prev;
-            });
-          }}
+          selectedIds={userThemeConfig.components}
+          onSelect={handleAddComponent}
           style={{ width: '220px' }}
         />
       )}
@@ -145,32 +168,24 @@ export default function EditorPageContent() {
             {selectedTheme?.fullComponent === 'Ecommerce' ? (
               <Ecommerce />
             ) : (
+              
               <div className="theme-container">
-                {/* ThemeContainer renders selected components with content */}
                 <ThemeContainer
                   themeComponents={userThemeConfig.components}
                   content={userThemeConfig.content}
+                  onContentChange={handleContentChange}
                 />
-                
-                {/* Editable text inputs to modify content */}
-                <EditableText themeId={userThemeConfig.themeId} />
-              </div> 
-             
+              </div>
             )}
           </>
         )}
 
-        {/* Export button */}
         <div style={{ marginTop: '2rem' }}>
-        <ExportButton
-          mode={mode}
-          selectedTheme={selectedTheme?.fullComponent} // e.g., "Ecommerce"
-          themeComponents={userThemeConfig.components} // array like ["header1", "hero", ...]
-          content={userThemeConfig.content}
-        />
-
-
-
+          <ExportButton
+            mode={mode}
+            themeComponents={userThemeConfig.components}
+            content={userThemeConfig.content}
+          />
         </div>
       </main>
     </div>

@@ -1,8 +1,10 @@
 import React from 'react';
-import './SideBar.css'
-export default function Sidebar({ options, selectedId, onSelect }) {
+import PropTypes from 'prop-types';
+import './SideBar.css';
+
+export default function SideBar({ options, selectedIds, onSelect }) {
   return (
-    <aside className="sidebar">
+    <aside className="sidebar" aria-label="Component selection sidebar">
       <h3>Select the components that you want</h3>
       <ul className="sidebar__list">
         {options.map((option) => (
@@ -16,10 +18,12 @@ export default function Sidebar({ options, selectedId, onSelect }) {
               }
             }}
             className={
-              selectedId === option.id
-                ? "sidebar__list-item sidebar__list-item--active"
-                : "sidebar__list-item"
+              selectedIds.includes(option.id)
+                ? 'sidebar__list-item sidebar__list-item--active'
+                : 'sidebar__list-item'
             }
+            aria-pressed={selectedIds.includes(option.id)}
+            role="button"
           >
             {option.name}
           </li>
@@ -28,3 +32,11 @@ export default function Sidebar({ options, selectedId, onSelect }) {
     </aside>
   );
 }
+
+SideBar.propTypes = {
+  options: PropTypes.arrayOf(
+    PropTypes.shape({ id: PropTypes.string.isRequired, name: PropTypes.string.isRequired }),
+  ).isRequired,
+  selectedIds: PropTypes.arrayOf(PropTypes.string).isRequired,
+  onSelect: PropTypes.func.isRequired,
+};

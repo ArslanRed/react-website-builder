@@ -1,16 +1,17 @@
 import React, { createContext, useContext, useState } from 'react';
+import PropTypes from 'prop-types';
 
 const UserThemeContext = createContext();
 
 export function UserThemeProvider({ children }) {
   const [userThemeConfig, setUserThemeConfig] = useState({
     themeId: null,
-    components: [], // example: ['header1', 'hero', 'footer1']
+    components: [],
     content: {
       heading: '',
       paragraph: '',
     },
-    styles: {}, // optional user styles
+    styles: {},
   });
 
   return (
@@ -20,6 +21,14 @@ export function UserThemeProvider({ children }) {
   );
 }
 
+UserThemeProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 export function useUserTheme() {
-  return useContext(UserThemeContext);
+  const context = useContext(UserThemeContext);
+  if (!context) {
+    throw new Error('useUserTheme must be used within a UserThemeProvider');
+  }
+  return context;
 }

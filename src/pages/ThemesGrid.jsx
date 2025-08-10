@@ -1,4 +1,5 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import ThemeCard from '../components/ThemeCard';
 import { themes } from '../components/themes';
 
@@ -11,6 +12,7 @@ export default function ThemesGrid({ selectedThemeId, onSelectTheme }) {
         flexWrap: 'wrap',
         marginBottom: '2rem',
       }}
+      role="list"
     >
       {themes.map((theme) => (
         <ThemeCard
@@ -18,8 +20,18 @@ export default function ThemesGrid({ selectedThemeId, onSelectTheme }) {
           theme={theme}
           isSelected={selectedThemeId === theme.id}
           onSelect={onSelectTheme}
+          role="listitem"
         />
       ))}
     </div>
   );
 }
+
+ThemesGrid.propTypes = {
+  selectedThemeId: PropTypes.string,
+  onSelectTheme: PropTypes.func.isRequired,
+};
+
+ThemesGrid.defaultProps = {
+  selectedThemeId: null,
+};
