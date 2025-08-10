@@ -1,121 +1,69 @@
-// src/components/ExportButton.js
-import React from 'react';
-import { saveAs } from 'file-saver';
-import JSZip from 'jszip';
-import ReactDOMServer from 'react-dom/server';
-import ThemeContainer from './ThemeContainer';
+import React from "react";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
 
-// Utility: Convert user theme config to JSX string
-function generateJSXString(components, content) {
-  const compToJSX = {
-    header1: `<Header1 title={"${content.heading || 'Default Title'}"} />`,
-    header2: `<Header2 title={"${content.heading || 'Default Title'}"} />`,
-    hero: `<Hero subtitle={"${content.paragraph || ''}"} />`,
-    footer1: `<Footer1 />`,
-  };
+// Import your component sources as raw strings
+import EcommerceCode from "../components/AllThemes/Ecommerce.jsx?raw";
+import EcommerceCSS from "../components/AllThemes/Ecommerce.css?raw";
 
-  // Compose import statements + JSX body
-  const imports = `
-import React from 'react';
+import Header1Code from "../components/Header1.jsx?raw";
+import Header2Code from "../components/Header2.jsx?raw";
+// import HeroCode from "../components/Hero.jsx?raw";
+// import Footer1Code from "../components/Footer1.jsx?raw";
 
-function Header1({ title }) {
-  return <header style={{ background: '#4f46e5', color: 'white', padding: '1rem' }}><h1>{title}</h1></header>;
-}
-function Header2({ title }) {
-  return <header style={{ background: '#222', color: 'white', padding: '1rem' }}><h2>{title}</h2></header>;
-}
-function Hero({ subtitle }) {
-  return <section style={{ padding: '2rem', background: '#eee' }}><p>{subtitle}</p></section>;
-}
-function Footer1() {
-  return <footer style={{ padding: '1rem', background: '#333', color: 'white' }}>© 2025 Your Company</footer>;
-}
+import Header1CSS from "../styles/Header1.module.css?raw";
+import Header2CSS from "../styles/Header2.module.css?raw";
 
-export default function Theme() {
-  return (
-    <>
-      ${components.map((c) => compToJSX[c]).join('\n      ')}
-    </>
-  );
-}
-  `;
 
-  return imports;
-}
-
-// Utility: Generate full static HTML snapshot
-function generateStaticHTML(containerId = 'root') {
-  const container = document.getElementById(containerId);
-  if (!container) return null;
-  // Get full HTML content inside root container
-  return container.innerHTML;
-}
-
-// Utility: Extract CSS from document (simple way: get all stylesheets content)
-function generateCSS() {
-  let cssText = '';
-  for (const sheet of document.styleSheets) {
-    try {
-      for (const rule of sheet.cssRules) {
-        cssText += rule.cssText + '\n';
-      }
-    } catch (e) {
-      // ignore CORS restricted sheets
-    }
-  }
-  return cssText;
-}
+// Map component IDs to their source code & CSS
+const componentSources = {
+  header1: { code: Header1Code, css: Header1CSS },
+  header2: { code: Header2Code, css: Header2CSS },
+  // hero: { code: HeroCode, css: HeroCSS },
+  // footer1: { code: Footer1Code, css: Footer1CSS },
+};
 
 export default function ExportButton({ themeComponents, content, mode }) {
-  async function handleExport() {
+  const handleExport = async () => {
     const zip = new JSZip();
 
-    // 1. Generate static HTML snapshot of #root (or your editor container)
-    const html = generateStaticHTML('root') || '<!-- No HTML content found -->';
+    if (mode === "themeSelected" && themeComponents.length === 0) {
+      // Case 1: Full prebuilt theme (e.g., Ecommerce)
+      zip.file("Ecommerce.jsx", EcommerceCode);
+      zip.file("Ecommerce.css", EcommerceCSS);
+    } else if (themeComponents.length > 0) {
+      // Case 2: Custom-built theme
+      themeComponents.forEach((compId) => {
+        if (componentSources[compId]) {
+          const { code, css } = componentSources[compId];
+          zip.file(`${compId}.jsx`, code);
+          if (css) {
+            zip.file(`${compId}.css`, css);
+          }
+        }
+      });
+    } else {
+      alert("No components to export.");
+      return;
+    }
 
-    // 2. Generate CSS snapshot
-    const css = generateCSS();
+    const contentFile = JSON.stringify(content, null, 2);
+    zip.file("content.json", contentFile);
 
-    // 3. Generate JSX source string from theme config
-    const jsxSource = generateJSXString(themeComponents, content);
-
-    // Add files to zip
-    zip.file('index.html', `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Exported Theme</title>
-<style>
-${css}
-</style>
-</head>
-<body>
-<div id="root">
-${html}
-</div>
-</body>
-</html>`);
-
-    zip.file('styles.css', css);
-    zip.file('Theme.jsx', jsxSource);
-
-    // Generate zip and trigger download
-    const contentBlob = await zip.generateAsync({ type: 'blob' });
-    saveAs(contentBlob, 'exported-theme.zip');
-  }
+    const blob = await zip.generateAsync({ type: "blob" });
+    saveAs(blob, "theme-export.zip");
+  };
 
   return (
     <button
       onClick={handleExport}
       style={{
-        padding: '0.6rem 1.2rem',
-        backgroundColor: '#4f46e5',
-        color: 'white',
-        border: 'none',
+        backgroundColor: "#4f46e5",
+        color: "white",
+        border: "none",
         borderRadius: 6,
-        cursor: 'pointer',
-        fontSize: '1rem',
+        padding: "0.5rem 1rem",
+        cursor: "pointer",
       }}
     >
       Export Theme

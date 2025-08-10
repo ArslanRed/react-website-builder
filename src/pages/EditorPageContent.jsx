@@ -161,11 +161,15 @@ export default function EditorPageContent() {
 
         {/* Export button */}
         <div style={{ marginTop: '2rem' }}>
-          <ExportButton
-  themeComponents={userThemeConfig.components}
-  content={userThemeConfig.content}
-  mode={mode}
-/>
+        <ExportButton
+          mode={mode}
+          selectedTheme={selectedTheme?.fullComponent} // e.g., "Ecommerce"
+          themeComponents={userThemeConfig.components} // array like ["header1", "hero", ...]
+          content={userThemeConfig.content}
+        />
+
+
+
         </div>
       </main>
     </div>
