@@ -1,6 +1,24 @@
+import Header from "./Header";
+import Aside from "./Aside";
+import Footer from "./Footer";
+
 export const BLOCK_TEMPLATES = {
-  h1: { type: "text", tag: "h1", content: "Heading 1", style: { fontSize: "2rem", fontWeight: "bold" } },
-  p: { type: "text", tag: "p", content: "Paragraph text", style: { margin: "0.5rem 0" } },
+  h1: {
+    type: "text",
+    tag: "h1",
+    content: "Heading 1",
+    style: { fontSize: "2rem", fontWeight: "bold" },
+    width: 600, // typical width for headings
+    height: 60, // approximate height for 2rem font
+  },
+  p: {
+    type: "text",
+    tag: "p",
+    content: "Paragraph text",
+    style: { margin: "0.5rem 0" },
+    width: 600,
+    height: 40, // one line of text ~40px
+  },
 
   header: {
     type: "container",
@@ -12,6 +30,8 @@ export const BLOCK_TEMPLATES = {
       backgroundColor: "#eee",
       padding: "1rem",
     },
+    width: 1200, // full-width header typical
+    height: 100, // standard header height
     content: [],
     elements: [
       {
@@ -50,6 +70,8 @@ export const BLOCK_TEMPLATES = {
       border: "1px solid #ddd",
       textAlign: "center",
     },
+    width: 1000, // reasonable section width
+    height: 250, // starting section height
     elements: [
       {
         id: "heading_2",
@@ -66,5 +88,27 @@ export const BLOCK_TEMPLATES = {
         style: { marginTop: "0.5rem" },
       },
     ],
+  },
+
+  // Full React components
+  fullHeader: {
+    type: "component",
+    component: Header,
+    width: 1200,
+    height: 100,
+  },
+
+  aside: {
+    type: "component",
+    component: Aside,
+    width: 300,
+    height: 600, // typical sidebar height
+  },
+
+  footer: {
+    type: "component",
+    component: Footer,
+    width: 1200,
+    height: 80, // standard footer height
   },
 };

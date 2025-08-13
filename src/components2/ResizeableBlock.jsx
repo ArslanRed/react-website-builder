@@ -32,9 +32,7 @@ export default function ResizableBlock({
   onResizeInsert,
 }) {
   const ref = useRef(null);
-
-  // States
-  const [resizing, setResizing] = useState(null); // direction string or null
+  const [resizing, setResizing] = useState(null);
   const [dragging, setDragging] = useState(false);
   const [startPos, setStartPos] = useState(null);
   const [startRect, setStartRect] = useState(null);
@@ -45,7 +43,6 @@ export default function ResizableBlock({
     height: block.height || 40,
   });
 
-  // Refs for latest values to use in window handlers without reattaching
   const resizingRef = useRef(resizing);
   const draggingRef = useRef(dragging);
   const startPosRef = useRef(startPos);
@@ -54,35 +51,14 @@ export default function ResizableBlock({
   const blockIdRef = useRef(block.id);
   const moveBlockRef = useRef(moveBlock);
 
-  useEffect(() => {
-    resizingRef.current = resizing;
-  }, [resizing]);
+  useEffect(() => { resizingRef.current = resizing; }, [resizing]);
+  useEffect(() => { draggingRef.current = dragging; }, [dragging]);
+  useEffect(() => { startPosRef.current = startPos; }, [startPos]);
+  useEffect(() => { startRectRef.current = startRect; }, [startRect]);
+  useEffect(() => { rectRef.current = rect; }, [rect]);
+  useEffect(() => { blockIdRef.current = block.id; }, [block.id]);
+  useEffect(() => { moveBlockRef.current = moveBlock; }, [moveBlock]);
 
-  useEffect(() => {
-    draggingRef.current = dragging;
-  }, [dragging]);
-
-  useEffect(() => {
-    startPosRef.current = startPos;
-  }, [startPos]);
-
-  useEffect(() => {
-    startRectRef.current = startRect;
-  }, [startRect]);
-
-  useEffect(() => {
-    rectRef.current = rect;
-  }, [rect]);
-
-  useEffect(() => {
-    blockIdRef.current = block.id;
-  }, [block.id]);
-
-  useEffect(() => {
-    moveBlockRef.current = moveBlock;
-  }, [moveBlock]);
-
-  // Keep rect in sync with props when not dragging/resizing
   useEffect(() => {
     if (!dragging && !resizing) {
       setRect({
@@ -94,7 +70,6 @@ export default function ResizableBlock({
     }
   }, [block, dragging, resizing]);
 
-  // Toggle document.body styles while interacting
   useEffect(() => {
     if (dragging || resizing) {
       document.body.style.userSelect = "none";
@@ -109,7 +84,6 @@ export default function ResizableBlock({
     };
   }, [dragging, resizing]);
 
-  // Attach global window mousemove and mouseup once with stable handlers
   useEffect(() => {
     function onMouseMove(e) {
       if (resizingRef.current) {
@@ -122,12 +96,8 @@ export default function ResizableBlock({
         let newWidth = startRectRef.current.width;
         let newHeight = startRectRef.current.height;
 
-        if (resizingRef.current.includes("e")) {
-          newWidth = Math.max(MIN_WIDTH, startRectRef.current.width + deltaX);
-        }
-        if (resizingRef.current.includes("s")) {
-          newHeight = Math.max(MIN_HEIGHT, startRectRef.current.height + deltaY);
-        }
+        if (resizingRef.current.includes("e")) newWidth = Math.max(MIN_WIDTH, startRectRef.current.width + deltaX);
+        if (resizingRef.current.includes("s")) newHeight = Math.max(MIN_HEIGHT, startRectRef.current.height + deltaY);
         if (resizingRef.current.includes("w")) {
           newWidth = Math.max(MIN_WIDTH, startRectRef.current.width - deltaX);
           newLeft = startRectRef.current.left + (startRectRef.current.width - newWidth);
@@ -137,27 +107,17 @@ export default function ResizableBlock({
           newTop = startRectRef.current.top + (startRectRef.current.height - newHeight);
         }
 
-        setRect({
-          left: newLeft,
-          top: newTop,
-          width: newWidth,
-          height: newHeight,
-        });
+        setRect({ left: newLeft, top: newTop, width: newWidth, height: newHeight });
       } else if (draggingRef.current) {
         e.preventDefault();
         const deltaX = e.clientX - startPosRef.current.x;
         const deltaY = e.clientY - startPosRef.current.y;
-
-        setRect((prev) => ({
-          ...prev,
-          left: startRectRef.current.left + deltaX,
-          top: startRectRef.current.top + deltaY,
-        }));
+        setRect(prev => ({ ...prev, left: startRectRef.current.left + deltaX, top: startRectRef.current.top + deltaY }));
       }
     }
 
     function onMouseUp() {
-      if (resizingRef.current) {
+      if (resizingRef.current || draggingRef.current) {
         moveBlockRef.current(blockIdRef.current, {
           left: rectRef.current.left,
           top: rectRef.current.top,
@@ -165,14 +125,6 @@ export default function ResizableBlock({
           height: rectRef.current.height,
         });
         setResizing(null);
-      }
-      if (draggingRef.current) {
-        moveBlockRef.current(blockIdRef.current, {
-          left: rectRef.current.left,
-          top: rectRef.current.top,
-          width: rectRef.current.width,
-          height: rectRef.current.height,
-        });
         setDragging(false);
       }
     }
@@ -180,36 +132,26 @@ export default function ResizableBlock({
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
     window.addEventListener("blur", onMouseUp);
-
     return () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("blur", onMouseUp);
     };
-  }, []); // empty deps to attach once on mount
+  }, []);
 
-  // Start resizing on handle mouse down
   const onHandleMouseDown = (e, direction) => {
-    e.stopPropagation();
-    e.preventDefault();
-
-    // don't start resizing if an inner element is selected
+    e.stopPropagation(); e.preventDefault();
     if (selectedElementId) return;
-
     setResizing(direction);
     setStartPos({ x: e.clientX, y: e.clientY });
     setStartRect({ ...rect });
   };
 
-  // Start dragging on outer block mouse down
   const onDragMouseDown = (e) => {
     if (resizing) return;
     if (e.target.closest && e.target.closest(".inserted-element")) return;
     if (selectedElementId) return;
-
-    e.stopPropagation();
-    e.preventDefault();
-
+    e.stopPropagation(); e.preventDefault();
     setDragging(true);
     setStartPos({ x: e.clientX, y: e.clientY });
     setStartRect({ ...rect });
@@ -219,11 +161,7 @@ export default function ResizableBlock({
     <div
       ref={ref}
       onMouseDown={onDragMouseDown}
-      onClick={(e) => {
-        e.stopPropagation();
-        onClick?.(e);
-        setSelectedElementId(null);
-      }}
+      onClick={(e) => { e.stopPropagation(); onClick?.(e); setSelectedElementId(null); }}
       style={{
         position: "absolute",
         left: rect.left,
@@ -231,65 +169,37 @@ export default function ResizableBlock({
         width: rect.width,
         height: rect.height,
         boxSizing: "border-box",
-        border: selected && !selectedElementId ? "2px solid #4f46e5" : "1px solid #666",
-        backgroundColor: "white",
+        border: selected && !selectedElementId ? "2px solid #4f46e5" : "none",
+        backgroundColor: "transparent",
         userSelect: resizing || dragging ? "none" : "auto",
         touchAction: "none",
         cursor: dragging ? "grabbing" : "grab",
-        overflow: "visible",
+        overflow: "hidden",
       }}
     >
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        {(block.inserts || []).map((el) => (
-          <ResizableInsertedElement
-            key={el.id}
-            element={el}
-            selected={selectedElementId === el.id}
-            onSelect={() => setSelectedElementId(el.id)}
-            onEdit={() => onEditElement?.(el, block.id)}
-            blockId={block.id}
-            onMoveInsert={onMoveInsert}
-            onResizeInsert={onResizeInsert}
-            disablePointerEvents={!!(resizing || dragging)}
-          />
-        ))}
-
-        {selected && !selectedElementId && (
-          <div
-            style={{
-              position: "absolute",
-              top: "-40px",
-              left: 0,
-              display: "flex",
-              gap: 8,
-              zIndex: 1000,
-              backgroundColor: "#fff",
-              padding: "4px",
-              borderRadius: 4,
-              boxShadow: "0 2px 6px rgba(0,0,0,0.15)",
-            }}
-          >
-            {["link", "button", "image", "icon"].map((type) => (
-              <button
-                key={type}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onInsertRichElement?.(block.id, type);
-                }}
-                style={{
-                  cursor: "pointer",
-                  padding: "4px 8px",
-                  fontSize: 14,
-                  borderRadius: 4,
-                  border: "1px solid #ccc",
-                  backgroundColor: "#f5f5f5",
-                }}
-              >
-                Insert {type.charAt(0).toUpperCase() + type.slice(1)}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* Dynamically scale inserted elements */}
+       {(block.inserts || []).map(el => {
+  const scaleX = block.type === "component" ? 1 : rect.width / (block.width || 150);
+  const scaleY = block.type === "component" ? 1 : rect.height / (block.height || 40);
+  return (
+    <ResizableInsertedElement
+      key={el.id}
+      element={{
+        ...el,
+        width: (el.width || 100) * scaleX,
+        height: (el.height || 40) * scaleY,
+      }}
+      selected={selectedElementId === el.id}
+      onSelect={() => setSelectedElementId(el.id)}
+      onEdit={() => onEditElement?.(el, block.id)}
+      blockId={block.id}
+      onMoveInsert={onMoveInsert}
+      onResizeInsert={onResizeInsert}
+      disablePointerEvents={!!(resizing || dragging)}
+            />
+          );
+        })}
 
         <SimpleDNDBlock
           block={{
@@ -304,14 +214,14 @@ export default function ResizableBlock({
 
         {!selectedElementId &&
           [
-            { dir: "n", style: { top: -HANDLE_SIZE / 2, left: "50%", marginLeft: -HANDLE_SIZE / 2 } },
-            { dir: "s", style: { bottom: -HANDLE_SIZE / 2, left: "50%", marginLeft: -HANDLE_SIZE / 2 } },
-            { dir: "e", style: { right: -HANDLE_SIZE / 2, top: "50%", marginTop: -HANDLE_SIZE / 2 } },
-            { dir: "w", style: { left: -HANDLE_SIZE / 2, top: "50%", marginTop: -HANDLE_SIZE / 2 } },
-            { dir: "ne", style: { top: -HANDLE_SIZE / 2, right: -HANDLE_SIZE / 2 } },
-            { dir: "nw", style: { top: -HANDLE_SIZE / 2, left: -HANDLE_SIZE / 2 } },
-            { dir: "se", style: { bottom: -HANDLE_SIZE / 2, right: -HANDLE_SIZE / 2 } },
-            { dir: "sw", style: { bottom: -HANDLE_SIZE / 2, left: -HANDLE_SIZE / 2 } },
+            { dir: "ne", style: { top: 0, right: 0 } },
+            { dir: "nw", style: { top: 0, left: 0 } },
+            { dir: "se", style: { bottom: 0, right: 0 } },
+            { dir: "sw", style: { bottom: 0, left: 0 } },
+            { dir: "n", style: { top: 0, left: "50%", transform: "translateX(-50%)" } },
+            { dir: "s", style: { bottom: 0, left: "50%", transform: "translateX(-50%)" } },
+            { dir: "e", style: { right: 0, top: "50%", transform: "translateY(-50%)" } },
+            { dir: "w", style: { left: 0, top: "50%", transform: "translateY(-50%)" } },
           ].map(({ dir, style }) => (
             <div
               key={dir}

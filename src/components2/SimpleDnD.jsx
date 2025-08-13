@@ -10,24 +10,26 @@ import { BLOCK_TEMPLATES } from "./index";
 export default function SimpleDND() {
   const containerRef = useRef(null);
 
-  const initialBlocks = [
-    {
-      id: "block_header_1",
-      ...BLOCK_TEMPLATES.header,
-      position: { left: 20, top: 20 },
-      width: 600,
-      height: 70,
-      inserts: [], // initialize inserts
-    },
-    {
-      id: "block_section_1",
-      ...BLOCK_TEMPLATES.section,
-      position: { left: 20, top: 120 },
-      width: 500,
-      height: 200,
-      inserts: [],
-    },
-  ];
+const initialBlocks = [
+ 
+  {
+  id: "block_full_header_1",
+  ...BLOCK_TEMPLATES.fullHeader,
+  position: { left: 10, top: 30 },
+  width: 800,
+  height: 'auto',
+  inserts: [],
+  // No elements needed here unless you want to override
+},
+  {
+    id: "block_section_1",
+    ...BLOCK_TEMPLATES.section,
+    position: { left: 20, top: 180 },
+    width: 500,
+    height: 200,
+    inserts: [],
+  },
+];
 
   const [blocks, setBlocks] = useState(initialBlocks);
   const [selectedElementId, setSelectedElementId] = useState(null);
@@ -113,37 +115,53 @@ export default function SimpleDND() {
     }
   }, [history, historyIndex]);
 
-  const [, drop] = useDrop({
-    accept: "NEW_BLOCK",
-    drop: (item, monitor) => {
-      const clientOffset = monitor.getClientOffset();
-      if (!clientOffset || !containerRef.current) return;
+const [, drop] = useDrop({
+  accept: "NEW_BLOCK",
+  drop: (item, monitor) => {
+    const clientOffset = monitor.getClientOffset();
+    if (!clientOffset || !containerRef.current) return;
 
-      const containerRect = containerRef.current.getBoundingClientRect();
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const scrollLeft = containerRef.current.scrollLeft || 0;
+    const scrollTop = containerRef.current.scrollTop || 0;
 
-      const scrollLeft = containerRef.current.scrollLeft || 0;
-      const scrollTop = containerRef.current.scrollTop || 0;
+    const left = clientOffset.x - containerRect.left + scrollLeft;
+    const top = clientOffset.y - containerRect.top + scrollTop;
 
-      const left = clientOffset.x - containerRect.left + scrollLeft;
-      const top = clientOffset.y - containerRect.top + scrollTop;
+    const template = item.block.type && BLOCK_TEMPLATES[item.block.type];
 
-      setBlocks((prevBlocks) => [
-        ...prevBlocks,
-        {
-          id: `block_${Date.now()}`,
-          type: item.block.type || "custom",
-          tag: item.block.tag,
-          content: item.block.content || "",
-          style: item.block.style || {},
-          position: { left, top },
-          width: 150,
-          height: 40,
-          elements: item.block.elements || [],
-          inserts: [],
-        },
-      ]);
-    },
-  });
+    setBlocks((prevBlocks) => [
+      ...prevBlocks,
+      {
+        id: `block_${Date.now()}`,
+        type: item.block.type || "custom",
+        tag: item.block.tag,
+        style: { ...item.block.style },
+        position: { left, top },
+        width:
+          template?.type === "component" || template?.type === "text"
+            ? "auto" // let content decide width
+            : template?.width ?? "auto",
+        height:
+          template?.type === "component" || template?.type === "text"
+            ? "auto" // let content decide height
+            : template?.height ?? "auto",
+        inserts: [],
+        ...(item.block.type === "component"
+          ? {} // components handle their own content
+          : {
+              content: item.block.content || "",
+              elements: item.block.elements || [],
+            }),
+        component: item.block.component,
+      },
+    ]);
+  },
+});
+
+
+
+
 
   const setRefs = (node) => {
     containerRef.current = node;

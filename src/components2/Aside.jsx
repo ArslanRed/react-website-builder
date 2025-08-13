@@ -1,6 +1,22 @@
 import React from "react";
 
+const defaultElements = [
+  {
+    id: "aside_heading_1",
+    type: "heading",
+    content: "About Us",
+  },
+  {
+    id: "aside_paragraph_1",
+    type: "paragraph",
+    content:
+      "We provide top-notch solutions to help your business grow and succeed in the digital world.",
+  },
+];
+
 export default function Aside({ style, elements }) {
+  const elems = elements && elements.length > 0 ? elements : defaultElements;
+
   return (
     <aside
       style={{
@@ -8,14 +24,14 @@ export default function Aside({ style, elements }) {
         border: "1.5px solid #cbd5e1",
         borderRadius: "8px",
         padding: "1.5rem 1.75rem",
-        width: "320px",
+        height:'100%',
         fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
         boxShadow: "0 2px 12px rgba(100, 100, 120, 0.12)",
         color: "#333",
         ...style,
       }}
     >
-      {elements?.map((el) => {
+      {elems.map((el) => {
         switch (el.type) {
           case "heading":
             return (
