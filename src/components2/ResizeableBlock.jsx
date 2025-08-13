@@ -1,7 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import SimpleDNDBlock from "./SimpleDndBlock";
 import DeleteButton from "./DeleteButton";
-import ResizableInsertedElement from "./ResizeableInsertedElements";
 
 const HANDLE_SIZE = 10;
 const MIN_WIDTH = 50;
@@ -26,10 +25,8 @@ export default function ResizableBlock({
   onDelete,
   selectedElementId,
   setSelectedElementId,
-  onEditElement,
-  onInsertRichElement,
-  onMoveInsert,
-  onResizeInsert,
+  selectedTarget,
+  setSelectedTarget,
 }) {
   const ref = useRef(null);
   const [resizing, setResizing] = useState(null);
@@ -43,21 +40,11 @@ export default function ResizableBlock({
     height: block.height || 40,
   });
 
-  const resizingRef = useRef(resizing);
-  const draggingRef = useRef(dragging);
-  const startPosRef = useRef(startPos);
-  const startRectRef = useRef(startRect);
-  const rectRef = useRef(rect);
-  const blockIdRef = useRef(block.id);
-  const moveBlockRef = useRef(moveBlock);
+  const refs = useRef({ resizing, dragging, startPos, startRect, rect, blockId: block.id, moveBlock });
 
-  useEffect(() => { resizingRef.current = resizing; }, [resizing]);
-  useEffect(() => { draggingRef.current = dragging; }, [dragging]);
-  useEffect(() => { startPosRef.current = startPos; }, [startPos]);
-  useEffect(() => { startRectRef.current = startRect; }, [startRect]);
-  useEffect(() => { rectRef.current = rect; }, [rect]);
-  useEffect(() => { blockIdRef.current = block.id; }, [block.id]);
-  useEffect(() => { moveBlockRef.current = moveBlock; }, [moveBlock]);
+  useEffect(() => {
+    refs.current = { resizing, dragging, startPos, startRect, rect, blockId: block.id, moveBlock };
+  }, [resizing, dragging, startPos, startRect, rect, block.id, moveBlock]);
 
   useEffect(() => {
     if (!dragging && !resizing) {
@@ -71,13 +58,8 @@ export default function ResizableBlock({
   }, [block, dragging, resizing]);
 
   useEffect(() => {
-    if (dragging || resizing) {
-      document.body.style.userSelect = "none";
-      document.body.style.touchAction = "none";
-    } else {
-      document.body.style.userSelect = "";
-      document.body.style.touchAction = "";
-    }
+    document.body.style.userSelect = dragging || resizing ? "none" : "";
+    document.body.style.touchAction = dragging || resizing ? "none" : "";
     return () => {
       document.body.style.userSelect = "";
       document.body.style.touchAction = "";
@@ -86,43 +68,43 @@ export default function ResizableBlock({
 
   useEffect(() => {
     function onMouseMove(e) {
-      if (resizingRef.current) {
+      if (refs.current.resizing) {
         e.preventDefault();
-        const deltaX = e.clientX - startPosRef.current.x;
-        const deltaY = e.clientY - startPosRef.current.y;
+        const deltaX = e.clientX - refs.current.startPos.x;
+        const deltaY = e.clientY - refs.current.startPos.y;
 
-        let newLeft = startRectRef.current.left;
-        let newTop = startRectRef.current.top;
-        let newWidth = startRectRef.current.width;
-        let newHeight = startRectRef.current.height;
+        let newLeft = refs.current.startRect.left;
+        let newTop = refs.current.startRect.top;
+        let newWidth = refs.current.startRect.width;
+        let newHeight = refs.current.startRect.height;
 
-        if (resizingRef.current.includes("e")) newWidth = Math.max(MIN_WIDTH, startRectRef.current.width + deltaX);
-        if (resizingRef.current.includes("s")) newHeight = Math.max(MIN_HEIGHT, startRectRef.current.height + deltaY);
-        if (resizingRef.current.includes("w")) {
-          newWidth = Math.max(MIN_WIDTH, startRectRef.current.width - deltaX);
-          newLeft = startRectRef.current.left + (startRectRef.current.width - newWidth);
+        if (refs.current.resizing.includes("e")) newWidth = Math.max(MIN_WIDTH, refs.current.startRect.width + deltaX);
+        if (refs.current.resizing.includes("s")) newHeight = Math.max(MIN_HEIGHT, refs.current.startRect.height + deltaY);
+        if (refs.current.resizing.includes("w")) {
+          newWidth = Math.max(MIN_WIDTH, refs.current.startRect.width - deltaX);
+          newLeft = refs.current.startRect.left + (refs.current.startRect.width - newWidth);
         }
-        if (resizingRef.current.includes("n")) {
-          newHeight = Math.max(MIN_HEIGHT, startRectRef.current.height - deltaY);
-          newTop = startRectRef.current.top + (startRectRef.current.height - newHeight);
+        if (refs.current.resizing.includes("n")) {
+          newHeight = Math.max(MIN_HEIGHT, refs.current.startRect.height - deltaY);
+          newTop = refs.current.startRect.top + (refs.current.startRect.height - newHeight);
         }
 
         setRect({ left: newLeft, top: newTop, width: newWidth, height: newHeight });
-      } else if (draggingRef.current) {
+      } else if (refs.current.dragging) {
         e.preventDefault();
-        const deltaX = e.clientX - startPosRef.current.x;
-        const deltaY = e.clientY - startPosRef.current.y;
-        setRect(prev => ({ ...prev, left: startRectRef.current.left + deltaX, top: startRectRef.current.top + deltaY }));
+        const deltaX = e.clientX - refs.current.startPos.x;
+        const deltaY = e.clientY - refs.current.startPos.y;
+        setRect(prev => ({ ...prev, left: refs.current.startRect.left + deltaX, top: refs.current.startRect.top + deltaY }));
       }
     }
 
     function onMouseUp() {
-      if (resizingRef.current || draggingRef.current) {
-        moveBlockRef.current(blockIdRef.current, {
-          left: rectRef.current.left,
-          top: rectRef.current.top,
-          width: rectRef.current.width,
-          height: rectRef.current.height,
+      if (refs.current.resizing || refs.current.dragging) {
+        refs.current.moveBlock(refs.current.blockId, {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
         });
         setResizing(null);
         setDragging(false);
@@ -137,10 +119,11 @@ export default function ResizableBlock({
       window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("blur", onMouseUp);
     };
-  }, []);
+  }, [rect]);
 
   const onHandleMouseDown = (e, direction) => {
-    e.stopPropagation(); e.preventDefault();
+    e.stopPropagation();
+    e.preventDefault();
     if (selectedElementId) return;
     setResizing(direction);
     setStartPos({ x: e.clientX, y: e.clientY });
@@ -148,10 +131,9 @@ export default function ResizableBlock({
   };
 
   const onDragMouseDown = (e) => {
-    if (resizing) return;
-    if (e.target.closest && e.target.closest(".inserted-element")) return;
-    if (selectedElementId) return;
-    e.stopPropagation(); e.preventDefault();
+    if (resizing || selectedElementId) return;
+    e.stopPropagation();
+    e.preventDefault();
     setDragging(true);
     setStartPos({ x: e.clientX, y: e.clientY });
     setStartRect({ ...rect });
@@ -161,7 +143,12 @@ export default function ResizableBlock({
     <div
       ref={ref}
       onMouseDown={onDragMouseDown}
-      onClick={(e) => { e.stopPropagation(); onClick?.(e); setSelectedElementId(null); }}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick?.(e);
+        setSelectedElementId(null);
+        setSelectedTarget({ blockId: block.id, type: "block" });
+      }}
       style={{
         position: "absolute",
         left: rect.left,
@@ -177,68 +164,38 @@ export default function ResizableBlock({
         overflow: "hidden",
       }}
     >
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        {/* Dynamically scale inserted elements */}
-       {(block.inserts || []).map(el => {
-  const scaleX = block.type === "component" ? 1 : rect.width / (block.width || 150);
-  const scaleY = block.type === "component" ? 1 : rect.height / (block.height || 40);
-  return (
-    <ResizableInsertedElement
-      key={el.id}
-      element={{
-        ...el,
-        width: (el.width || 100) * scaleX,
-        height: (el.height || 40) * scaleY,
-      }}
-      selected={selectedElementId === el.id}
-      onSelect={() => setSelectedElementId(el.id)}
-      onEdit={() => onEditElement?.(el, block.id)}
-      blockId={block.id}
-      onMoveInsert={onMoveInsert}
-      onResizeInsert={onResizeInsert}
-      disablePointerEvents={!!(resizing || dragging)}
-            />
-          );
-        })}
-
-        <SimpleDNDBlock
-          block={{
-            ...block,
-            position: { left: 0, top: 0 },
-            width: rect.width,
-            height: rect.height,
-          }}
-        />
-
-        <DeleteButton onClick={onDelete} />
-
-        {!selectedElementId &&
-          [
-            { dir: "ne", style: { top: 0, right: 0 } },
-            { dir: "nw", style: { top: 0, left: 0 } },
-            { dir: "se", style: { bottom: 0, right: 0 } },
-            { dir: "sw", style: { bottom: 0, left: 0 } },
-            { dir: "n", style: { top: 0, left: "50%", transform: "translateX(-50%)" } },
-            { dir: "s", style: { bottom: 0, left: "50%", transform: "translateX(-50%)" } },
-            { dir: "e", style: { right: 0, top: "50%", transform: "translateY(-50%)" } },
-            { dir: "w", style: { left: 0, top: "50%", transform: "translateY(-50%)" } },
-          ].map(({ dir, style }) => (
-            <div
-              key={dir}
-              onMouseDown={(e) => onHandleMouseDown(e, dir)}
-              style={{
-                position: "absolute",
-                width: HANDLE_SIZE,
-                height: HANDLE_SIZE,
-                backgroundColor: "rgba(0,0,0,0.3)",
-                cursor: cursors[dir],
-                ...style,
-                zIndex: 10,
-                borderRadius: 2,
-              }}
-            />
-          ))}
-      </div>
+      <SimpleDNDBlock
+        block={{ ...block, position: { left: 0, top: 0 }, width: rect.width, height: rect.height }}
+        selectedTarget={selectedTarget}
+        setSelectedTarget={setSelectedTarget}
+      />
+      <DeleteButton onClick={onDelete} />
+      {!selectedElementId &&
+        [
+          { dir: "ne", style: { top: 0, right: 0 } },
+          { dir: "nw", style: { top: 0, left: 0 } },
+          { dir: "se", style: { bottom: 0, right: 0 } },
+          { dir: "sw", style: { bottom: 0, left: 0 } },
+          { dir: "n", style: { top: 0, left: "50%", transform: "translateX(-50%)" } },
+          { dir: "s", style: { bottom: 0, left: "50%", transform: "translateX(-50%)" } },
+          { dir: "e", style: { right: 0, top: "50%", transform: "translateY(-50%)" } },
+          { dir: "w", style: { left: 0, top: "50%", transform: "translateY(-50%)" } },
+        ].map(({ dir, style }) => (
+          <div
+            key={dir}
+            onMouseDown={(e) => onHandleMouseDown(e, dir)}
+            style={{
+              position: "absolute",
+              width: HANDLE_SIZE,
+              height: HANDLE_SIZE,
+              backgroundColor: "rgba(0,0,0,0.3)",
+              cursor: cursors[dir],
+              ...style,
+              zIndex: 10,
+              borderRadius: 2,
+            }}
+          />
+        ))}
     </div>
   );
 }

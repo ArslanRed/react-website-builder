@@ -1,12 +1,47 @@
+import React from "react";
+import SimpleDNDBlock from "./SimpleDndBlock"; // use your existing recursive renderer
+
 const defaultElements = [
-  { id: "icon_1", content: "🔷" },
-  { id: "site_title", content: "My Site Title" },
-  { id: "nav_1", content: ["Home", "About", "Services", "Contact"] },
-  { id: "logo_name", content: "LogoName" },
+  {
+    id: "icon_1",
+    type: "icon",
+    content: "🔷",
+    style: { fontSize: "2rem", color: "#4fc3f7", fontWeight: 900, lineHeight: 1 },
+  },
+  {
+    id: "site_title",
+    type: "heading",
+    content: "My Site Title",
+    style: {
+      fontSize: "1.9rem",
+      fontWeight: 800,
+      textAlign: "center",
+      flexGrow: 1,
+      color: "#f0f0f0",
+      userSelect: "text",
+    },
+  },
+  {
+    id: "nav_1",
+    type: "nav",
+    style: { display: "flex", gap: "1.8rem", fontWeight: 600, fontSize: "1rem", userSelect: "none", color: "#bbb" },
+    elements: [
+      { id: "nav_home", type: "link", content: "Home", style: { textDecoration: "none", color: "#4fc3f7", padding: "0.4rem 0.8rem", borderRadius: "5px" } },
+      { id: "nav_about", type: "link", content: "About", style: { textDecoration: "none", color: "#4fc3f7", padding: "0.4rem 0.8rem", borderRadius: "5px" } },
+      { id: "nav_services", type: "link", content: "Services", style: { textDecoration: "none", color: "#4fc3f7", padding: "0.4rem 0.8rem", borderRadius: "5px" } },
+      { id: "nav_contact", type: "link", content: "Contact", style: { textDecoration: "none", color: "#4fc3f7", padding: "0.4rem 0.8rem", borderRadius: "5px" } },
+    ],
+  },
+  {
+    id: "logo_name",
+    type: "text",
+    content: "LogoName",
+    style: { fontWeight: 700, fontSize: "1.2rem", letterSpacing: "1px", color: "#4fc3f7" },
+  },
 ];
 
-export default function Header({ style, elements }) {
-  const elems = elements && elements.length > 0 ? elements : defaultElements;
+export default function Header({ style = {}, elements = [], selectedTarget, setSelectedTarget, blockId }) {
+  const elems = elements.length > 0 ? elements : defaultElements;
 
   return (
     <header
@@ -23,90 +58,15 @@ export default function Header({ style, elements }) {
         color: "#eee",
       }}
     >
-      {/* Left: Icon + Logo Name */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "0.6rem",
-          cursor: "default",
-          userSelect: "none",
-        }}
-      >
-        <div
-          style={{
-            fontSize: "2rem",
-            color: "#4fc3f7",
-            fontWeight: "900",
-            lineHeight: 1,
-          }}
-        >
-          {elems[0].content}
-        </div>
-        <span
-          style={{
-            fontWeight: "700",
-            fontSize: "1.2rem",
-            letterSpacing: "1px",
-            color: "#4fc3f7",
-          }}
-        >
-          {elems[3].content}
-        </span>
-      </div>
-
-      {/* Center: Site Name */}
-      <h1
-        style={{
-          margin: 0,
-          fontSize: "1.9rem",
-          fontWeight: "800",
-          letterSpacing: "2px",
-          textAlign: "center",
-          flexGrow: 1,
-          color: "#f0f0f0",
-          userSelect: "text",
-        }}
-      >
-        {elems[1].content}
-      </h1>
-
-      {/* Right: Navigation */}
-      <nav
-        style={{
-          display: "flex",
-          gap: "1.8rem",
-          fontWeight: "600",
-          fontSize: "1rem",
-          userSelect: "none",
-          color: "#bbb",
-        }}
-      >
-        {elems[2].content.map((item, i) => (
-          <a
-            key={i}
-            href="#"
-            style={{
-              textDecoration: "none",
-              color: "#4fc3f7",
-              padding: "0.4rem 0.8rem",
-              borderRadius: "5px",
-              transition: "background-color 0.3s ease, color 0.3s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "#4fc3f7";
-              e.currentTarget.style.color = "#1a1f36";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = "transparent";
-              e.currentTarget.style.color = "#4fc3f7";
-            }}
-            onClick={(e) => e.preventDefault()}
-          >
-            {item}
-          </a>
-        ))}
-      </nav>
+      {elems.map((el) => (
+        <SimpleDNDBlock
+          key={el.id}
+          block={el}
+          selectedTarget={selectedTarget}
+          setSelectedTarget={setSelectedTarget}
+          blockId={blockId || "header_block"}
+        />
+      ))}
     </header>
   );
 }

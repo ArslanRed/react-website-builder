@@ -16,21 +16,19 @@ const cursors = {
   sw: "nesw-resize",
 };
 
-export default function ResizableInsertedElement({
+export default function EditableElement({
   element,
-  selected,
-  onSelect,
-  onEdit,
   blockId,
-  onMoveInsert,
-  onResizeInsert,
+  selectedTarget,
+  setSelectedTarget,
+  parentPath = [],
   disablePointerEvents = false,
 }) {
   const ref = useRef(null);
 
   const [localRect, setLocalRect] = useState({
-    left: element.position.left,
-    top: element.position.top,
+    left: element.position?.left || 0,
+    top: element.position?.top || 0,
     width: element.width || 100,
     height: element.height || 40,
   });
@@ -40,52 +38,31 @@ export default function ResizableInsertedElement({
   const startPosRef = useRef(null);
   const startRectRef = useRef(null);
 
-  useEffect(() => {
-    resizingRef.current = resizing;
-  }, [resizing]);
+  const isSelected = selectedTarget?.elementId === element.id;
+  const scaleX = element.width ? localRect.width / element.width : 1;
+  const scaleY = element.height ? localRect.height / element.height : 1;
 
-  useEffect(() => {
-    if (!resizing) {
-      setLocalRect({
-        left: element.position.left,
-        top: element.position.top,
-        width: element.width || 100,
-        height: element.height || 40,
-      });
-    }
-  }, [element, resizing]);
-
+  // Drag
   const [{ isDragging }, drag] = useDrag({
-    type: "INSERTED_ELEMENT",
-    item: {
-      id: element.id,
-      blockId,
-      left: element.position?.left || 0,
-      top: element.position?.top || 0,
-      width: element.width || 100,
-      height: element.height || 40,
-    },
+    type: "ELEMENT",
+    item: { id: element.id, blockId, left: localRect.left, top: localRect.top, width: localRect.width, height: localRect.height, path: [...parentPath, element.id] },
     canDrag: () => !resizing && !disablePointerEvents,
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
+    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
   });
 
+  // Drop
   const [, drop] = useDrop({
-    accept: "INSERTED_ELEMENT",
+    accept: "ELEMENT",
     hover(item, monitor) {
       if (!ref.current) return;
       const delta = monitor.getDifferenceFromInitialOffset();
       if (!delta) return;
 
-      let left = Math.round(item.left + delta.x);
-      let top = Math.round(item.top + delta.y);
-
-      left = Math.max(0, left);
-      top = Math.max(0, top);
+      let left = Math.max(0, Math.round(item.left + delta.x));
+      let top = Math.max(0, Math.round(item.top + delta.y));
 
       if (left !== localRect.left || top !== localRect.top) {
-        onMoveInsert?.(blockId, element.id, { left, top });
+        setLocalRect((prev) => ({ ...prev, left, top }));
         item.left = left;
         item.top = top;
       }
@@ -94,16 +71,13 @@ export default function ResizableInsertedElement({
 
   drag(drop(ref));
 
+  // Resize logic
   const localRectRef = useRef(localRect);
-  useEffect(() => {
-    localRectRef.current = localRect;
-  }, [localRect]);
+  useEffect(() => { localRectRef.current = localRect; }, [localRect]);
 
   useEffect(() => {
     function onMouseMove(e) {
       if (!resizingRef.current) return;
-      e.preventDefault();
-
       const deltaX = e.clientX - startPosRef.current.x;
       const deltaY = e.clientY - startPosRef.current.y;
 
@@ -114,29 +88,13 @@ export default function ResizableInsertedElement({
 
       if (resizingRef.current.includes("e")) newWidth = Math.max(MIN_WIDTH, startRectRef.current.width + deltaX);
       if (resizingRef.current.includes("s")) newHeight = Math.max(MIN_HEIGHT, startRectRef.current.height + deltaY);
-      if (resizingRef.current.includes("w")) {
-        newWidth = Math.max(MIN_WIDTH, startRectRef.current.width - deltaX);
-        newLeft = startRectRef.current.left + (startRectRef.current.width - newWidth);
-      }
-      if (resizingRef.current.includes("n")) {
-        newHeight = Math.max(MIN_HEIGHT, startRectRef.current.height - deltaY);
-        newTop = startRectRef.current.top + (startRectRef.current.height - newHeight);
-      }
+      if (resizingRef.current.includes("w")) { newWidth = Math.max(MIN_WIDTH, startRectRef.current.width - deltaX); newLeft = startRectRef.current.left + (startRectRef.current.width - newWidth); }
+      if (resizingRef.current.includes("n")) { newHeight = Math.max(MIN_HEIGHT, startRectRef.current.height - deltaY); newTop = startRectRef.current.top + (startRectRef.current.height - newHeight); }
 
-      setLocalRect({
-        left: newLeft,
-        top: newTop,
-        width: newWidth,
-        height: newHeight,
-      });
+      setLocalRect({ left: newLeft, top: newTop, width: newWidth, height: newHeight });
     }
 
-    function onMouseUp() {
-      if (resizingRef.current) {
-        onResizeInsert?.(blockId, element.id, localRectRef.current);
-        setResizing(null);
-      }
-    }
+    function onMouseUp() { if (resizingRef.current) setResizing(null); }
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
@@ -147,29 +105,21 @@ export default function ResizableInsertedElement({
       window.removeEventListener("mouseup", onMouseUp);
       window.removeEventListener("blur", onMouseUp);
     };
-  }, [blockId, element.id, onResizeInsert]);
+  }, []);
 
-  const onHandleMouseDown = (e, direction) => {
-    e.stopPropagation();
-    e.preventDefault();
-    setResizing(direction);
-    resizingRef.current = direction;
+  const onHandleMouseDown = (e, dir) => {
+    e.stopPropagation(); e.preventDefault();
+    setResizing(dir);
+    resizingRef.current = dir;
     startPosRef.current = { x: e.clientX, y: e.clientY };
     startRectRef.current = localRectRef.current;
   };
 
+  // Recursive render for inner elements
   return (
     <div
       ref={ref}
-      className="inserted-element"
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect?.();
-      }}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        onEdit?.();
-      }}
+      onClick={(e) => { e.stopPropagation(); setSelectedTarget({ type: "element", blockId, elementId: element.id, path: [...parentPath, element.id] }); }}
       style={{
         position: "absolute",
         left: localRect.left,
@@ -178,113 +128,64 @@ export default function ResizableInsertedElement({
         height: localRect.height,
         cursor: isDragging ? "grabbing" : "grab",
         opacity: isDragging ? 0.5 : 1,
-        padding: 4,
-        border: selected ? "2px solid #4f46e5" : "1px solid #ccc",
+        border: isSelected ? "2px solid #3b82f6" : "1px solid #ccc",
         borderRadius: 4,
-        backgroundColor: "white",
+        backgroundColor: element.style?.backgroundColor || "white",
+        color: element.style?.color || "black",
+        fontSize: element.style?.fontSize || "14px",
+        fontWeight: element.style?.fontWeight || "normal",
+        fontStyle: element.style?.fontStyle || "normal",
+        fontFamily: element.style?.fontFamily || "inherit",
+        margin: element.style?.margin || 0,
+        padding: element.style?.padding || 4,
+        outline: isSelected ? "2px solid #2563eb" : "none",
         userSelect: "none",
         boxSizing: "border-box",
         overflow: "hidden",
         whiteSpace: "nowrap",
-        zIndex: selected ? 100 : 1,
-        pointerEvents: disablePointerEvents ? "none" : "auto",
+        zIndex: isSelected ? 100 : 1,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        pointerEvents: disablePointerEvents ? "none" : "auto",
       }}
     >
-      {/* Render element content with explicit styles to fill container */}
-      {element.type === "link" && (
-        <a
-          href={element.url}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            pointerEvents: "none",
-            display: "block",
-            width: "100%",
-            height: "100%",
-            overflow: "hidden",
-            whiteSpace: "nowrap",
-            textOverflow: "ellipsis",
-            lineHeight: "normal",
-            boxSizing: "border-box",
-            padding: "4px",
-          }}
-        >
-          {element.text}
-        </a>
-      )}
+      {element.content}
 
-      {element.type === "button" && (
-        <button
-          style={{
-            pointerEvents: "none",
-            width: "100%",
-            height: "100%",
-            boxSizing: "border-box",
-            padding: "4px",
+      {element.elements?.map((child) => (
+        <EditableElement
+          key={child.id}
+          element={{
+            ...child,
+            width: (child.width || 100) * scaleX,
+            height: (child.height || 40) * scaleY,
+            position: { left: (child.position?.left || 0) * scaleX, top: (child.position?.top || 0) * scaleY },
           }}
-        >
-          {element.text}
-        </button>
-      )}
-
-      {element.type === "image" && (
-        <img
-          src={element.url}
-          alt={element.text}
-          style={{ width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none" }}
+          blockId={blockId}
+          selectedTarget={selectedTarget}
+          setSelectedTarget={setSelectedTarget}
+          parentPath={[...parentPath, element.id]}
+          disablePointerEvents={disablePointerEvents}
         />
-      )}
-
-      {element.type === "icon" && (
-        <i
-          className={element.text}
-          style={{
-            pointerEvents: "none",
-            display: "inline-block",
-            width: "100%",
-            height: "100%",
-            fontSize: "calc(100% - 8px)",
-            textAlign: "center",
-            lineHeight: "normal",
-            boxSizing: "border-box",
-          }}
-        />
-      )}
+      ))}
 
       {/* Resize handles */}
-      {["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
-        const styleMap = {
-          n: { top: -HANDLE_SIZE / 2, left: "50%", marginLeft: -HANDLE_SIZE / 2, cursor: cursors.n },
-          s: { bottom: -HANDLE_SIZE / 2, left: "50%", marginLeft: -HANDLE_SIZE / 2, cursor: cursors.s },
-          e: { right: -HANDLE_SIZE / 2, top: "50%", marginTop: -HANDLE_SIZE / 2, cursor: cursors.e },
-          w: { left: -HANDLE_SIZE / 2, top: "50%", marginTop: -HANDLE_SIZE / 2, cursor: cursors.w },
-          ne: { top: -HANDLE_SIZE / 2, right: -HANDLE_SIZE / 2, cursor: cursors.ne },
-          nw: { top: -HANDLE_SIZE / 2, left: -HANDLE_SIZE / 2, cursor: cursors.nw },
-          se: { bottom: -HANDLE_SIZE / 2, right: -HANDLE_SIZE / 2, cursor: cursors.se },
-          sw: { bottom: -HANDLE_SIZE / 2, left: -HANDLE_SIZE / 2, cursor: cursors.sw },
-        };
-        return (
-          <div
-            key={dir}
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              onHandleMouseDown(e, dir);
-            }}
-            style={{
-              position: "absolute",
-              width: HANDLE_SIZE,
-              height: HANDLE_SIZE,
-              backgroundColor: "rgba(0,0,0,0.3)",
-              borderRadius: 2,
-              zIndex: 20,
-              ...styleMap[dir],
-            }}
-          />
-        );
-      })}
+      {["n","s","e","w","ne","nw","se","sw"].map(dir => (
+        <div key={dir} onMouseDown={(e) => onHandleMouseDown(e, dir)}
+          style={{ position: "absolute", width: HANDLE_SIZE, height: HANDLE_SIZE, backgroundColor: "rgba(0,0,0,0.3)", borderRadius: 2, zIndex: 20,
+            ...({
+              n: { top:-HANDLE_SIZE/2,left:"50%",marginLeft:-HANDLE_SIZE/2, cursor:cursors.n },
+              s: { bottom:-HANDLE_SIZE/2,left:"50%",marginLeft:-HANDLE_SIZE/2, cursor:cursors.s },
+              e: { right:-HANDLE_SIZE/2,top:"50%",marginTop:-HANDLE_SIZE/2, cursor:cursors.e },
+              w: { left:-HANDLE_SIZE/2,top:"50%",marginTop:-HANDLE_SIZE/2, cursor:cursors.w },
+              ne: { top:-HANDLE_SIZE/2,right:-HANDLE_SIZE/2, cursor:cursors.ne },
+              nw: { top:-HANDLE_SIZE/2,left:-HANDLE_SIZE/2, cursor:cursors.nw },
+              se: { bottom:-HANDLE_SIZE/2,right:-HANDLE_SIZE/2, cursor:cursors.se },
+              sw: { bottom:-HANDLE_SIZE/2,left:-HANDLE_SIZE/2, cursor:cursors.sw }
+            })[dir]
+          }}
+        />
+      ))}
     </div>
   );
 }

@@ -9,10 +9,8 @@ export default function BlocksRenderer({
   onDeleteBlock,
   selectedElementId,
   setSelectedElementId,
-  onEditElement,
-  onInsertRichElement,
-  onMoveInsert,
-  onResizeInsert,
+  selectedTarget,
+  setSelectedTarget,
 }) {
   return (
     <>
@@ -26,10 +24,8 @@ export default function BlocksRenderer({
           onDelete={() => onDeleteBlock(block.id)}
           selectedElementId={selectedElementId}
           setSelectedElementId={setSelectedElementId}
-          onEditElement={onEditElement}
-          onInsertRichElement={onInsertRichElement}
-          onMoveInsert={onMoveInsert}
-          onResizeInsert={onResizeInsert}
+          selectedTarget={selectedTarget}
+          setSelectedTarget={setSelectedTarget}
         />
       ))}
     </>

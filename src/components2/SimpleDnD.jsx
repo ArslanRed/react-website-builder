@@ -3,37 +3,39 @@ import { useDrop } from "react-dnd";
 import UndoRedoWithShortcuts from "./UndoRedoWithShortcuts";
 import SelectionManager from "./SelectionManager";
 import BlocksRenderer from "./BlocksRenderer";
-import RichElementModal from "./RichElementModal";
 import SidebarMenu from "./SidebarMenu";
 import { BLOCK_TEMPLATES } from "./index";
+import StyleEditor from "./StyleEditor";
 
 export default function SimpleDND() {
   const containerRef = useRef(null);
 
-const initialBlocks = [
- 
-  {
-  id: "block_full_header_1",
-  ...BLOCK_TEMPLATES.fullHeader,
-  position: { left: 10, top: 30 },
-  width: 800,
-  height: 'auto',
-  inserts: [],
-  // No elements needed here unless you want to override
-},
-  {
-    id: "block_section_1",
-    ...BLOCK_TEMPLATES.section,
-    position: { left: 20, top: 180 },
-    width: 500,
-    height: 200,
-    inserts: [],
-  },
-];
+  const initialBlocks = [
+    {
+      id: "block_full_header_1",
+      ...BLOCK_TEMPLATES.fullHeader,
+      position: { left: 10, top: 30 },
+      width: 800,
+      height: 'auto',
+    },
+    {
+      id: "block_section_1",
+      ...BLOCK_TEMPLATES.section,
+      position: { left: 20, top: 180 },
+      width: 500,
+      height: 200,
+    },
+  ];
 
   const [blocks, setBlocks] = useState(initialBlocks);
-  const [selectedElementId, setSelectedElementId] = useState(null);
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectedElementId, setSelectedElementId] = useState(null);
+
+  const [selectedTarget, setSelectedTarget] = useState({
+    type: null,
+    blockId: null,
+    elementId: null,
+  });
 
   const [history, setHistory] = useState([initialBlocks]);
   const [historyIndex, setHistoryIndex] = useState(0);
@@ -47,7 +49,6 @@ const initialBlocks = [
         return newHistory;
       });
       setHistoryIndex((prevIndex) => prevIndex + 1);
-      // Note: don't clear selection here so UI stays consistent
     },
     [historyIndex]
   );
@@ -59,29 +60,14 @@ const initialBlocks = [
           ? {
               ...b,
               position: {
-                left: newPos.left !== undefined ? newPos.left : b.position.left,
-                top: newPos.top !== undefined ? newPos.top : b.position.top,
+                left: newPos.left ?? b.position.left,
+                top: newPos.top ?? b.position.top,
               },
-              width: newPos.width !== undefined ? newPos.width : b.width,
-              height: newPos.height !== undefined ? newPos.height : b.height,
+              width: newPos.width ?? b.width,
+              height: newPos.height ?? b.height,
             }
           : b
       );
-      updateBlocks(updatedBlocks);
-    },
-    [blocks, updateBlocks]
-  );
-
-  // Update inserted element content inside blocks
-  const updateInsertedElementContent = useCallback(
-    (blockId, elementId, newProps) => {
-      const updatedBlocks = blocks.map((block) => {
-        if (block.id !== blockId) return block;
-        const updatedInserts = (block.inserts || []).map((el) =>
-          el.id === elementId ? { ...el, ...newProps } : el
-        );
-        return { ...block, inserts: updatedInserts };
-      });
       updateBlocks(updatedBlocks);
     },
     [blocks, updateBlocks]
@@ -115,53 +101,43 @@ const initialBlocks = [
     }
   }, [history, historyIndex]);
 
-const [, drop] = useDrop({
-  accept: "NEW_BLOCK",
-  drop: (item, monitor) => {
-    const clientOffset = monitor.getClientOffset();
-    if (!clientOffset || !containerRef.current) return;
+  const [, drop] = useDrop({
+    accept: "NEW_BLOCK",
+    drop: (item, monitor) => {
+      const clientOffset = monitor.getClientOffset();
+      if (!clientOffset || !containerRef.current) return;
 
-    const containerRect = containerRef.current.getBoundingClientRect();
-    const scrollLeft = containerRef.current.scrollLeft || 0;
-    const scrollTop = containerRef.current.scrollTop || 0;
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const scrollLeft = containerRef.current.scrollLeft || 0;
+      const scrollTop = containerRef.current.scrollTop || 0;
 
-    const left = clientOffset.x - containerRect.left + scrollLeft;
-    const top = clientOffset.y - containerRect.top + scrollTop;
+      const left = clientOffset.x - containerRect.left + scrollLeft;
+      const top = clientOffset.y - containerRect.top + scrollTop;
 
-    const template = item.block.type && BLOCK_TEMPLATES[item.block.type];
+      const template = item.block.type && BLOCK_TEMPLATES[item.block.type];
 
-    setBlocks((prevBlocks) => [
-      ...prevBlocks,
-      {
-        id: `block_${Date.now()}`,
-        type: item.block.type || "custom",
-        tag: item.block.tag,
-        style: { ...item.block.style },
-        position: { left, top },
-        width:
-          template?.type === "component" || template?.type === "text"
-            ? "auto" // let content decide width
-            : template?.width ?? "auto",
-        height:
-          template?.type === "component" || template?.type === "text"
-            ? "auto" // let content decide height
-            : template?.height ?? "auto",
-        inserts: [],
-        ...(item.block.type === "component"
-          ? {} // components handle their own content
-          : {
-              content: item.block.content || "",
-              elements: item.block.elements || [],
-            }),
-        component: item.block.component,
-      },
-    ]);
-  },
-});
-
-
-
-
+      setBlocks((prevBlocks) => [
+        ...prevBlocks,
+        {
+          id: `block_${Date.now()}`,
+          type: item.block.type || "custom",
+          tag: item.block.tag,
+          style: { ...item.block.style },
+          position: { left, top },
+          width:
+            template?.type === "component" || template?.type === "text"
+              ? "auto"
+              : template?.width ?? "auto",
+          height:
+            template?.type === "component" || template?.type === "text"
+              ? "auto"
+              : template?.height ?? "auto",
+          content: item.block.content || "",
+          component: item.block.component,
+        },
+      ]);
+    },
+  });
 
   const setRefs = (node) => {
     containerRef.current = node;
@@ -177,109 +153,6 @@ const [, drop] = useDrop({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedIds, deleteSelectedBlocks]);
-  
-  // Rich element editing states
-  const [editingElement, setEditingElement] = useState(null);
-  const [editingElementBlockId, setEditingElementBlockId] = useState(null);
-
-  const onInsertRichElement = (blockId, type) => {
-    setEditingElement({ id: null, type, text: "", url: "" });
-    setEditingElementBlockId(blockId);
-    setSelectedIds(new Set([blockId]));
-  };
-const onMoveInsert = useCallback(
-  (blockId, elementId, newPos) => {
-    updateBlocks(
-      blocks.map(block => {
-        if (block.id !== blockId) return block;
-        return {
-          ...block,
-          inserts: (block.inserts || []).map(el =>
-            el.id === elementId
-              ? {
-                  ...el,
-                  position: {
-                    ...el.position,
-                    ...newPos,
-                  },
-                }
-              : el
-          ),
-        };
-      })
-    );
-  },
-  [blocks, updateBlocks]
-);
-
-const onResizeInsert = useCallback(
-  (blockId, elementId, newRect) => {
-    updateBlocks(
-      blocks.map(block => {
-        if (block.id !== blockId) return block;
-        return {
-          ...block,
-          inserts: (block.inserts || []).map(el =>
-            el.id === elementId
-              ? {
-                  ...el,
-                  position: {
-                    ...el.position,
-                    left: newRect.left,
-                    top: newRect.top,
-                  },
-                  width: newRect.width,
-                  height: newRect.height,
-                }
-              : el
-          ),
-        };
-      })
-    );
-  },
-  [blocks, updateBlocks]
-);
-
-
-
-
-  const onSaveInsertedElement = (data) => {
-    if (!editingElementBlockId) return;
-    if (!editingElement) return;
-
-    updateBlocks(
-      blocks.map((block) => {
-        if (block.id !== editingElementBlockId) return block;
-
-        let newInserts = block.inserts ? [...block.inserts] : [];
-
-        if (!editingElement.id) {
-          // Insert new
-          newInserts.push({
-            id: `insert_${Date.now()}`,
-            position: { left: 10, top: 10 }, // default position for inserted elements
-            ...data,
-          });
-        } else {
-          // Update existing
-          newInserts = newInserts.map((el) =>
-            el.id === editingElement.id ? { ...el, ...data } : el
-          );
-        }
-        return { ...block, inserts: newInserts };
-      })
-    );
-
-    setEditingElement(null);
-    setEditingElementBlockId(null);
-  };
-
-  const onEditElement = (element, blockId) => {
-    setEditingElement(element);
-    setEditingElementBlockId(blockId);
-    setSelectedIds(new Set([blockId]));
-    setSelectedElementId(element.id);
-  };
 
   return (
     <>
@@ -313,26 +186,17 @@ const onResizeInsert = useCallback(
             selectedIds={selectedIds}
             selectedElementId={selectedElementId}
             setSelectedElementId={setSelectedElementId}
-            onEditElement={onEditElement}
-            onInsertRichElement={onInsertRichElement}
             onBlockClick={(e, id) => {
               e.stopPropagation();
               const isMultiSelect = e.ctrlKey || e.metaKey;
+              setSelectedTarget({ type: "block", blockId: id, elementId: null });
               setSelectedIds((prevSelected) => {
                 const newSelected = new Set(prevSelected);
                 if (isMultiSelect) {
-                  if (newSelected.has(id)) {
-                    newSelected.delete(id);
-                  } else {
-                    newSelected.add(id);
-                  }
+                  newSelected.has(id) ? newSelected.delete(id) : newSelected.add(id);
                 } else {
-                  if (newSelected.has(id) && newSelected.size === 1) {
-                    newSelected.clear();
-                  } else {
-                    newSelected.clear();
-                    newSelected.add(id);
-                  }
+                  newSelected.clear();
+                  newSelected.add(id);
                 }
                 return newSelected;
               });
@@ -342,10 +206,8 @@ const onResizeInsert = useCallback(
               const newBlocks = blocks.filter((b) => b.id !== id);
               updateBlocks(newBlocks);
             }}
-            
-            updateElementContent={updateInsertedElementContent}
-              onMoveInsert={onMoveInsert}
-              onResizeInsert={onResizeInsert}  
+            selectedTarget={selectedTarget}
+            setSelectedTarget={setSelectedTarget} 
           />
 
           <SelectionManager
@@ -356,13 +218,10 @@ const onResizeInsert = useCallback(
             onDeleteSelection={deleteSelectedBlocks}
           />
 
-          <RichElementModal
-            element={editingElement}
-            onSave={onSaveInsertedElement}
-            onClose={() => {
-              setEditingElement(null);
-              setEditingElementBlockId(null);
-            }}
+          <StyleEditor
+            selectedTarget={selectedTarget}
+            blocks={blocks}
+            updateBlocks={updateBlocks}
           />
         </div>
       </div>
