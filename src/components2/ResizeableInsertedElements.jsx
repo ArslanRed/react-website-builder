@@ -28,7 +28,6 @@ export default function ResizableInsertedElement({
 }) {
   const ref = useRef(null);
 
-  // State for local rectangle (position & size)
   const [localRect, setLocalRect] = useState({
     left: element.position.left,
     top: element.position.top,
@@ -36,7 +35,6 @@ export default function ResizableInsertedElement({
     height: element.height || 40,
   });
 
-  // States & refs for resizing
   const [resizing, setResizing] = useState(null);
   const resizingRef = useRef(null);
   const startPosRef = useRef(null);
@@ -46,7 +44,6 @@ export default function ResizableInsertedElement({
     resizingRef.current = resizing;
   }, [resizing]);
 
-  // Keep localRect synced to props unless resizing
   useEffect(() => {
     if (!resizing) {
       setLocalRect({
@@ -58,7 +55,6 @@ export default function ResizableInsertedElement({
     }
   }, [element, resizing]);
 
-  // React DnD drag hooks for moving
   const [{ isDragging }, drag] = useDrag({
     type: "INSERTED_ELEMENT",
     item: {
@@ -75,7 +71,6 @@ export default function ResizableInsertedElement({
     }),
   });
 
-  // Drop target to update position while dragging
   const [, drop] = useDrop({
     accept: "INSERTED_ELEMENT",
     hover(item, monitor) {
@@ -99,13 +94,11 @@ export default function ResizableInsertedElement({
 
   drag(drop(ref));
 
-  // Local rect ref for latest position & size during resize
   const localRectRef = useRef(localRect);
   useEffect(() => {
     localRectRef.current = localRect;
   }, [localRect]);
 
-  // Attach window event handlers once on mount
   useEffect(() => {
     function onMouseMove(e) {
       if (!resizingRef.current) return;
@@ -156,7 +149,6 @@ export default function ResizableInsertedElement({
     };
   }, [blockId, element.id, onResizeInsert]);
 
-  // Start resizing on handle mouse down
   const onHandleMouseDown = (e, direction) => {
     e.stopPropagation();
     e.preventDefault();
@@ -196,15 +188,48 @@ export default function ResizableInsertedElement({
         whiteSpace: "nowrap",
         zIndex: selected ? 100 : 1,
         pointerEvents: disablePointerEvents ? "none" : "auto",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
     >
-      {/* Render element content */}
+      {/* Render element content with explicit styles to fill container */}
       {element.type === "link" && (
-        <a href={element.url} target="_blank" rel="noopener noreferrer" style={{ pointerEvents: "none" }}>
+        <a
+          href={element.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            pointerEvents: "none",
+            display: "block",
+            width: "100%",
+            height: "100%",
+            overflow: "hidden",
+            whiteSpace: "nowrap",
+            textOverflow: "ellipsis",
+            lineHeight: "normal",
+            boxSizing: "border-box",
+            padding: "4px",
+          }}
+        >
           {element.text}
         </a>
       )}
-      {element.type === "button" && <button style={{ pointerEvents: "none" }}>{element.text}</button>}
+
+      {element.type === "button" && (
+        <button
+          style={{
+            pointerEvents: "none",
+            width: "100%",
+            height: "100%",
+            boxSizing: "border-box",
+            padding: "4px",
+          }}
+        >
+          {element.text}
+        </button>
+      )}
+
       {element.type === "image" && (
         <img
           src={element.url}
@@ -212,7 +237,22 @@ export default function ResizableInsertedElement({
           style={{ width: "100%", height: "100%", objectFit: "contain", pointerEvents: "none" }}
         />
       )}
-      {element.type === "icon" && <i className={element.text} style={{ pointerEvents: "none" }}></i>}
+
+      {element.type === "icon" && (
+        <i
+          className={element.text}
+          style={{
+            pointerEvents: "none",
+            display: "inline-block",
+            width: "100%",
+            height: "100%",
+            fontSize: "calc(100% - 8px)",
+            textAlign: "center",
+            lineHeight: "normal",
+            boxSizing: "border-box",
+          }}
+        />
+      )}
 
       {/* Resize handles */}
       {["n", "s", "e", "w", "ne", "nw", "se", "sw"].map((dir) => {
@@ -230,7 +270,7 @@ export default function ResizableInsertedElement({
           <div
             key={dir}
             onMouseDown={(e) => {
-              e.stopPropagation(); // prevent outer drag start when intentionally resizing inner
+              e.stopPropagation();
               onHandleMouseDown(e, dir);
             }}
             style={{

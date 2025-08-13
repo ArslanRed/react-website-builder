@@ -12,6 +12,7 @@ export default function BlocksRenderer({
   onEditElement,
   onInsertRichElement,
   onMoveInsert,
+  onResizeInsert,
 }) {
   return (
     <>
@@ -28,6 +29,7 @@ export default function BlocksRenderer({
           onEditElement={onEditElement}
           onInsertRichElement={onInsertRichElement}
           onMoveInsert={onMoveInsert}
+          onResizeInsert={onResizeInsert}
         />
       ))}
     </>
