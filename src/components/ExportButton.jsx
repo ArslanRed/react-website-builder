@@ -1,189 +1,68 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import JSZip from 'jszip';
-import { saveAs } from 'file-saver';
+import React from "react";
+import PropTypes from "prop-types";
+import JSZip from "jszip";
+import { saveAs } from "file-saver";
+import { componentMap } from "./ComponentMap"; // must have __sourceCode and __css
 
-import EcommerceCode from '../components/AllThemes/Ecommerce.jsx?raw';
-import EcommerceCSS from '../components/AllThemes/Ecommerce.css?raw';
-
-import Header1Code from '../components/Header1.jsx?raw';
-import Header2Code from '../components/Header2.jsx?raw';
-
-import Header1CSS from '../styles/Header1.module.css?raw';
-import Header2CSS from '../styles/Header2.module.css?raw';
-
-const componentSources = {
-  header1: { code: Header1Code, css: Header1CSS },
-  header2: { code: Header2Code, css: Header2CSS },
-};
-
+// Helper to capitalize component names
 function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-export default function ExportButton({ mode, themeComponents, content }) {
+export default function ExportButton({ mode, themeComponents, content, gridItems }) {
+  // ----- Existing Theme Export -----
   const handleExport = async () => {
     const zip = new JSZip();
 
-    if (mode === 'themeSelected' && themeComponents.length === 0) {
-      zip.file('Ecommerce.jsx', EcommerceCode);
-      zip.file('Ecommerce.css', EcommerceCSS);
+    if (mode === "themeSelected" && themeComponents.length === 0) {
+      alert("No theme selected to export.");
+      return;
     } else if (themeComponents.length > 0) {
       themeComponents.forEach((compId) => {
-        if (componentSources[compId]) {
-          const { code, css } = componentSources[compId];
-          zip.file(`${compId}.jsx`, code);
-          if (css) zip.file(`${compId}.css`, css);
+        const Comp = componentMap[compId];
+        if (Comp && Comp.__sourceCode && Comp.__css) {
+          zip.file(`${compId}.jsx`, Comp.__sourceCode);
+          zip.file(`${compId}.css`, Comp.__css);
         }
       });
     } else {
-      alert('No components to export.');
+      alert("No components to export.");
       return;
     }
 
-    zip.file('content.json', JSON.stringify(content, null, 2));
-    const blob = await zip.generateAsync({ type: 'blob' });
-    saveAs(blob, 'theme-export.zip');
+    zip.file("content.json", JSON.stringify(content, null, 2));
+    const blob = await zip.generateAsync({ type: "blob" });
+    saveAs(blob, "theme-export.zip");
   };
 
-  // Helper function to extract CSS from document (handles media queries, ignores CORS errors)
-  const extractCssForContainer = (container) => {
-    let css = '';
-    for (const sheet of document.styleSheets) {
-      try {
-        for (const rule of sheet.cssRules) {
-          if (rule.type === CSSRule.STYLE_RULE) {
-            const selectors = rule.selectorText.split(',');
-            if (selectors.some((sel) => {
-              try {
-                return container.querySelector(sel.trim()) !== null;
-              } catch {
-                return false;
-              }
-            })) {
-              css += rule.cssText + '\n';
-            }
-          } else if (rule.type === CSSRule.MEDIA_RULE) {
-            let mediaCss = '';
-            for (const innerRule of rule.cssRules) {
-              if (innerRule.type === CSSRule.STYLE_RULE) {
-                const selectors = innerRule.selectorText.split(',');
-                if (selectors.some((sel) => {
-                  try {
-                    return container.querySelector(sel.trim()) !== null;
-                  } catch {
-                    return false;
-                  }
-                })) {
-                  mediaCss += innerRule.cssText + '\n';
-                }
-              }
-            }
-            if (mediaCss) {
-              css += `@media ${rule.conditionText} {\n${mediaCss}}\n`;
-            }
-          }
-        }
-      } catch (e) {
-        // Ignore CORS error stylesheets
-      }
-    }
-    return css;
-  };
-
-  const handleLiveExport = async () => {
-    const editor = document.querySelector('.theme-container');
-    if (!editor) {
-      alert('No theme content found to export!');
-      return;
-    }
-
-    let html = editor.innerHTML.trim();
-    let jsx = html
-      .replace(/class=/g, 'className=')
-      .replace(/for=/g, 'htmlFor=')
-      .replace(/style="([^"]*)"/g, (match, styles) => {
-        const styleObj = styles
-          .split(';')
-          .filter(Boolean)
-          .map((rule) => {
-            let [prop, value] = rule.split(':');
-            if (!prop || !value) return '';
-            prop = prop.trim().replace(/-([a-z])/g, (_, char) => char.toUpperCase());
-            value = value.trim();
-            return `${prop}: "${value}"`;
-          })
-          .join(', ');
-        return `style={{ ${styleObj} }}`;
-      });
-
-    const css = extractCssForContainer(editor);
-
-    const zip = new JSZip();
-    zip.file('CustomTheme.jsx', `export default function CustomTheme() {\n  return (\n    <>${jsx}</>\n  );\n}`);
-    zip.file('CustomTheme.css', css);
-
-    if (themeComponents && themeComponents.length > 0) {
-      themeComponents.forEach((compId) => {
-        if (componentSources[compId]) {
-          const { code, css } = componentSources[compId];
-          zip.file(`${compId}.jsx`, code);
-          if (css) zip.file(`${compId}.css`, css);
-        }
-      });
-    }
-
-    const blob = await zip.generateAsync({ type: 'blob' });
-    saveAs(blob, 'custom-theme-export.zip');
-  };
-
-  // Hybrid export: both live snapshot and modular components
+  // ----- Hybrid Export (existing) -----
   const handleHybridExport = async () => {
-    const editor = document.querySelector('.theme-container');
-    if (!editor) {
-      alert('No theme content found to export!');
+    if (!gridItems || gridItems.length === 0) {
+      alert("No components to export.");
       return;
     }
 
-    let html = editor.innerHTML.trim();
-    let liveJsx = html
-      .replace(/class=/g, 'className=')
-      .replace(/for=/g, 'htmlFor=')
-      .replace(/style="([^"]*)"/g, (match, styles) => {
-        const styleObj = styles
-          .split(';')
-          .filter(Boolean)
-          .map((rule) => {
-            let [prop, value] = rule.split(':');
-            if (!prop || !value) return '';
-            prop = prop.trim().replace(/-([a-z])/g, (_, char) => char.toUpperCase());
-            value = value.trim();
-            return `${prop}: "${value}"`;
-          })
-          .join(', ');
-        return `style={{ ${styleObj} }}`;
-      });
-
-    const css = extractCssForContainer(editor);
-
     const zip = new JSZip();
-    zip.file('LiveSnapshot.jsx', `export default function LiveSnapshot() {\n  return (\n    <>${liveJsx}</>\n  );\n}`);
-    zip.file('LiveSnapshot.css', css);
+    // Collect unique components
+    const usedComponents = Array.from(new Set(gridItems.map((item) => item.type)));
 
-    if (themeComponents && themeComponents.length > 0) {
-      themeComponents.forEach((compId) => {
-        if (componentSources[compId]) {
-          const { code, css } = componentSources[compId];
-          zip.file(`${compId}.jsx`, code);
-          if (css) zip.file(`${compId}.css`, css);
-        }
-      });
-    }
+    // Add component files
+    usedComponents.forEach((compId) => {
+      const Comp = componentMap[compId];
+      if (Comp && Comp.__sourceCode && Comp.__css) {
+        zip.file(`${compId}.jsx`, Comp.__sourceCode);
+        zip.file(`${compId}.css`, Comp.__css);
+      }
+    });
 
-    const importsStr = themeComponents.map((compId) => `import ${capitalize(compId)} from "./${compId}.jsx";`).join('\n');
-    const renderStr = themeComponents.map((compId) => `      <${capitalize(compId)} />`).join('\n');
+    // Generate CustomTheme.jsx
+    const importsStr = usedComponents.map((c) => `import ${capitalize(c)} from "./${c}.jsx";`).join("\n");
+    const renderStr = gridItems
+      .map((item) => `  <${capitalize(item.type)} />`)
+      .join("\n");
 
-    const customThemeCode = `${importsStr}
+    const customThemeCode = `
+${importsStr}
 
 export default function CustomTheme() {
   return (
@@ -193,35 +72,106 @@ ${renderStr}
   );
 }
 `;
+    zip.file("CustomTheme.jsx", customThemeCode);
 
-    zip.file('CustomTheme.jsx', customThemeCode);
+    // Optional README
+    const readme = `# Exported Hybrid Theme
 
-    const readme = `# Exported Theme
+- CustomTheme.jsx: modular component layout
+- Component .jsx & .css files: ready to use
+`;
+    zip.file("README.md", readme);
 
-- LiveSnapshot.jsx/css: Your exact current customized layout snapshot.
-- CustomTheme.jsx: Modular component-based theme you can scale & modify.
-- Component source files: Original React components & styles used.
+    const blob = await zip.generateAsync({ type: "blob" });
+    saveAs(blob, "hybrid-theme-export.zip");
+  };
 
-Use LiveSnapshot.jsx for a frozen look or start editing from CustomTheme.jsx and components.
+  // ----- New dedicated Custom Theme Export -----
+  const handleExportCustomTheme = async () => {
+    if (!gridItems || gridItems.length === 0) {
+      alert("No components to export.");
+      return;
+    }
+
+    const zip = new JSZip();
+
+    // Collect unique components
+    const usedComponents = Array.from(new Set(gridItems.map((item) => item.type)));
+
+    // Add component files
+    usedComponents.forEach((compId) => {
+      const Comp = componentMap[compId];
+      if (Comp && Comp.__sourceCode && Comp.__css) {
+        zip.file(`${compId}.jsx`, Comp.__sourceCode);
+        zip.file(`${compId}.css`, Comp.__css);
+      }
+    });
+
+    // Generate App.jsx with all props and sizes
+    const importsStr = usedComponents
+      .map((comp) => `import ${capitalize(comp)} from "./${comp}.jsx";`)
+      .join("\n");
+
+    const renderStr = gridItems
+      .map((item) => {
+        const combinedProps = { ...item.props };
+        if (item.size) {
+          combinedProps.style = {
+            ...(combinedProps.style || {}),
+            width: `${item.size.width}px`,
+            height: `${item.size.height}px`,
+          };
+        }
+
+        const propsStr = Object.entries(combinedProps)
+          .map(([key, value]) =>
+            typeof value === "object" ? `${key}={${JSON.stringify(value)}}` : `${key}=${JSON.stringify(value)}`
+          )
+          .join(" ");
+
+        return `  <${capitalize(item.type)} ${propsStr} />`;
+      })
+      .join("\n");
+
+    const appCode = `
+${importsStr}
+
+export default function App() {
+  return (
+    <div>
+${renderStr}
+    </div>
+  );
+}
 `;
 
-    zip.file('README.md', readme);
+    zip.file("App.jsx", appCode);
 
-    const blob = await zip.generateAsync({ type: 'blob' });
-    saveAs(blob, 'hybrid-theme-export.zip');
+    // Optional README
+    const readme = `# Exported Custom Theme
+
+- App.jsx: main entry with your components in correct order & sizes
+- Component .jsx & .css files: ready to use
+- All inline styles reflect the user-customized layout
+`;
+    zip.file("README.md", readme);
+
+    // Generate ZIP
+    const blob = await zip.generateAsync({ type: "blob" });
+    saveAs(blob, "custom-theme.zip");
   };
 
   return (
-    <div style={{ display: 'flex', gap: '10px' }}>
+    <div style={{ display: "flex", gap: "10px" }}>
       <button
         onClick={handleExport}
         style={{
-          backgroundColor: '#4f46e5',
-          color: 'white',
-          border: 'none',
+          backgroundColor: "#4f46e5",
+          color: "white",
+          border: "none",
           borderRadius: 6,
-          padding: '0.5rem 1rem',
-          cursor: 'pointer',
+          padding: "0.5rem 1rem",
+          cursor: "pointer",
         }}
         title="Export selected theme or components"
       >
@@ -229,29 +179,29 @@ Use LiveSnapshot.jsx for a frozen look or start editing from CustomTheme.jsx and
       </button>
 
       <button
-        onClick={handleLiveExport}
+        onClick={handleExportCustomTheme}
         style={{
-          backgroundColor: '#16a34a',
-          color: 'white',
-          border: 'none',
+          backgroundColor: "#16a34a",
+          color: "white",
+          border: "none",
           borderRadius: 6,
-          padding: '0.5rem 1rem',
-          cursor: 'pointer',
+          padding: "0.5rem 1rem",
+          cursor: "pointer",
         }}
-        title="Export live JSX and CSS snapshot"
+        title="Export ready-to-build custom theme"
       >
-        Export Live JSX/CSS
+        Export Live Changes
       </button>
 
       <button
         onClick={handleHybridExport}
         style={{
-          backgroundColor: '#db7e00',
-          color: 'white',
-          border: 'none',
+          backgroundColor: "#db7e00",
+          color: "white",
+          border: "none",
           borderRadius: 6,
-          padding: '0.5rem 1rem',
-          cursor: 'pointer',
+          padding: "0.5rem 1rem",
+          cursor: "pointer",
         }}
         title="Export live snapshot + original components + modular CustomTheme.jsx"
       >
@@ -268,11 +218,19 @@ ExportButton.propTypes = {
     heading: PropTypes.string,
     paragraph: PropTypes.string,
   }),
+  gridItems: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string,
+      type: PropTypes.string,
+      props: PropTypes.object,
+      size: PropTypes.shape({ width: PropTypes.number, height: PropTypes.number }),
+    })
+  ).isRequired,
 };
 
 ExportButton.defaultProps = {
   content: {
-    heading: '',
-    paragraph: '',
+    heading: "",
+    paragraph: "",
   },
 };

@@ -34,13 +34,7 @@
 }
 
 /* Main content wrapper grows to fill space */
-.content-wrapper {
-  max-width: 1100px;
-  margin: 0 auto;  /* Center horizontally */
-  padding: 1rem;
-  flex-grow: 1;   /* Grow to fill vertical space */
-  /* Remove min-height and centering */
-}
+
 
 /* Footer fixed height */
 .site-footer {

@@ -1,0 +1,58 @@
+.style-editor {
+  position: fixed;
+  right: 0;
+  top: 60px;        /* leave space for header */
+  bottom: 50px;     /* leave space for footer */
+  width: 250px;
+  background: #f7f7f7;
+  border-left: 1px solid #ccc;
+  padding: 12px;
+  overflow-y: auto;
+  z-index: 9999;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: -2px 0 6px rgba(0,0,0,0.05);
+}
+
+.style-editor h3 {
+  margin-top: 0;
+  color: #4f46e5;
+  font-weight: 600;
+}
+
+.style-editor .field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.style-editor .field input[type="text"],
+.style-editor .field input[type="number"],
+.style-editor .field textarea {
+  width: 100%;
+  padding: 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.style-editor .field textarea {
+  resize: vertical;
+}
+
+.style-editor .field input[type="color"] {
+  width: 100%;
+  height: 24px;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.style-editor .field input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+}

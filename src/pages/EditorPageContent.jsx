@@ -1,45 +1,31 @@
 import React, { useState } from 'react';
 import { useUserTheme } from '../contexts/UserThemeContext';
 import ThemesGrid from './ThemesGrid';
-import ThemeContainer from '../components/ThemeContainer';
+import GridEditor from '../components/GridEditor';
 import ExportButton from '../components/ExportButton';
-import SideBar from '../components/SideBar';
-import EditableText from '../components/EditableText';
-import { components } from '../components/component';
 import { themes } from '../components/themes';
 import Ecommerce from '../components/AllThemes/Ecommerce';
-
+import '../styles/EditorPageContent.css'
 export default function EditorPageContent() {
   const { userThemeConfig, setUserThemeConfig } = useUserTheme();
   const [mode, setMode] = useState('initial'); // initial | themeSelected | buildCustomTheme
 
   const selectedTheme = themes.find((t) => t.id === userThemeConfig.themeId);
 
-  function handleSelectTheme(id) {
+  const handleSelectTheme = (id) => {
     setMode('themeSelected');
-    // Set themeId and default components if theme has predefined components
     const theme = themes.find((t) => t.id === id);
     if (theme) {
-      if (theme.components) {
-        setUserThemeConfig({
-          themeId: id,
-          components: theme.components,
-          content: { heading: '', paragraph: '' },
-          styles: {},
-        });
-      } else {
-        // For fullComponent or unknown themes fallback
-        setUserThemeConfig({
-          themeId: id,
-          components: [],
-          content: { heading: '', paragraph: '' },
-          styles: {},
-        });
-      }
+      setUserThemeConfig({
+        themeId: id,
+        components: theme.components || [],
+        content: { heading: '', paragraph: '' },
+        styles: {},
+      });
     }
-  }
+  };
 
-  function handleShowThemes() {
+  const handleShowThemes = () => {
     setMode('initial');
     setUserThemeConfig({
       themeId: null,
@@ -47,9 +33,9 @@ export default function EditorPageContent() {
       content: { heading: '', paragraph: '' },
       styles: {},
     });
-  }
+  };
 
-  function handleBuildCustomTheme() {
+  const handleBuildCustomTheme = () => {
     setMode('buildCustomTheme');
     setUserThemeConfig({
       themeId: null,
@@ -57,44 +43,26 @@ export default function EditorPageContent() {
       content: { heading: '', paragraph: '' },
       styles: {},
     });
-  }
+  };
 
-  function handleAddComponent(compId) {
-    setUserThemeConfig((prev) => {
-      if (!prev.components.includes(compId)) {
-        return { ...prev, components: [...prev.components, compId] };
-      }
-      return prev;
-    });
-  }
-
-  function handleContentChange(newContent) {
+  const handleContentChange = (newContent) => {
     setUserThemeConfig((prev) => ({ ...prev, content: newContent }));
-  }
+  };
 
-  const showSidebar = mode === 'buildCustomTheme';
   const showCard = mode === 'initial';
   const showThemesGrid = mode === 'initial';
   const showThemeContent = mode === 'themeSelected' || mode === 'buildCustomTheme';
 
   return (
-    <div style={{ display: 'flex', height: '100vh', boxSizing: 'border-box' }}>
-      {showSidebar && (
-        <SideBar
-          options={components}
-          selectedIds={userThemeConfig.components}
-          onSelect={handleAddComponent}
-          style={{ width: '220px' }}
-        />
-      )}
-
+    <div style={{ display: 'flex', height: '100vh', boxSizing: 'border-box' ,  textAlign:'center'}}>
       <main
         style={{
-          flexGrow: 1,
+         
           height: '100%',
           overflowY: 'auto',
           padding: '1rem',
           boxSizing: 'border-box',
+         
         }}
       >
         <h2>Website Builder Editor</h2>
@@ -149,7 +117,7 @@ export default function EditorPageContent() {
             }}
           >
             <h3>Welcome to the Editor!</h3>
-            <p>Select a theme below or build your own custom theme by selecting components.</p>
+            <p>Select a theme below or build your own custom theme by dragging components.</p>
           </div>
         )}
 
@@ -164,17 +132,11 @@ export default function EditorPageContent() {
 
         {showThemeContent && (
           <>
-            {/* Render fullComponent if available */}
             {selectedTheme?.fullComponent === 'Ecommerce' ? (
               <Ecommerce />
             ) : (
-              
-              <div className="theme-container">
-                <ThemeContainer
-                  themeComponents={userThemeConfig.components}
-                  content={userThemeConfig.content}
-                  onContentChange={handleContentChange}
-                />
+              <div className="theme-container" >
+                <GridEditor />
               </div>
             )}
           </>
