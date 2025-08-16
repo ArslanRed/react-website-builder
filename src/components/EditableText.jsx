@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export default function EditableText({ tag = 'p', text, onChange, className = '' }) {
+export default function EditableText({ tag = 'p', text, onChange, className = '', style = {} }) {
   const Tag = tag;
   const ref = useRef(null);
 
@@ -25,7 +25,7 @@ export default function EditableText({ tag = 'p', text, onChange, className = ''
       aria-label={`Editable ${tag}`}
       tabIndex={0}
       spellCheck={false}
-      style={{ color: 'pink' }}
+      style={style}
     />
   );
 }

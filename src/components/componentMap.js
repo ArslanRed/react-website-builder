@@ -15,12 +15,17 @@ export const defaultPropsMap = {
     title: "My Site",
     navItems: [{ content: "Home" }, { content: "About" }],
     ctaItems: [{ content: "Get Started" }],
-    style: {}, // 🔹 block-level styles (applied to <header>)
+    style: {}, 
     elements: {
-      logo: { style: {}, textStyle: {} },
-      nav: { style: {}, listStyle: {}, itemStyle: {} },
-      cta: { style: {}, itemStyle: {} },
-    },
+  logo: { style: {}, textStyle: {} },
+  title: { style: {}, textStyle: {} },
+  nav: { style: {}, listStyle: {} },
+  'navItem-0': { style: {}, textStyle: {} },
+  'navItem-1': { style: {}, textStyle: {} },
+  cta: { style: {} },
+  'cta-0': { style: {}, textStyle: {} },
+  // add more keys if you dynamically add items
+},
   },
   header2: {
     title: "Header 2",

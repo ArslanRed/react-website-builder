@@ -1,7 +1,7 @@
-import React from "react";
-import PropTypes from "prop-types";
-import EditableText from "./EditableText";
-import styles from "../styles/Header1.module.css";
+import React from 'react';
+import PropTypes from 'prop-types';
+import EditableText from './EditableText';
+import styles from '../styles/Header1.module.css';
 
 function Header1({
   title,
@@ -10,108 +10,101 @@ function Header1({
   onNavItemChange = () => {},
   ctaItems = [],
   onCtaChange = () => {},
-  style = {},          // 🔹 incoming styles from your editor
-  elements = {},       // 🔹 element-level styles
+  style = {},
+  elements = {},   // element-level styles
 }) {
   return (
     <header
       className={styles.header}
-      style={{
-        ...style, // 🔹 external editor styles override here
-      }}
+      style={{ ...(style || {}) }}
       data-element-id="header"
     >
-      {/* Logo */}
+      {/* Logo / Title */}
       <div
         className={styles.logo}
-        style={{
-          flex: "0 0 auto",
-          marginBottom: "0.5rem",
-          ...(elements.logo?.style || {}),
-        }}
         data-element-id="logo"
+        style={{ flex: '0 0 auto', marginBottom: '0.5rem', ...(elements['logo']?.style || {}) }}
       >
         <EditableText
           tag="h1"
           text={title}
           onChange={onTitleChange}
           className={styles.title}
-          style={{
-            margin: 0,
-            fontSize: "1.5rem",
-            whiteSpace: "nowrap",
-            ...(elements.logo?.textStyle || {}),
+          data-element-id="title"
+           style={{
+    ...(elements['title']?.style || {}), // container styles
+    ...(elements['title']?.textStyle || {}) , color: elements['title']?.textStyle?.color || 'inherit',// text-specific styles
           }}
         />
       </div>
 
       {/* Navigation */}
-      <nav
-        className={styles.nav}
-        style={{
-          flex: "1 1 auto",
-          ...(elements.nav?.style || {}),
-        }}
-        data-element-id="nav"
-      >
+      <nav className={styles.nav} data-element-id="nav" style={{ flex: '1 1 auto', ...(elements['nav']?.style || {}) }}>
         <ul
           className={styles.navList}
           style={{
-            display: "flex",
-            gap: "1rem",
-            flexWrap: "wrap",
+            display: 'flex',
+            gap: '1rem',
+            flexWrap: 'wrap',
             margin: 0,
             padding: 0,
-            listStyle: "none",
-            ...(elements.nav?.listStyle || {}),
+            listStyle: 'none',
+            ...(elements['nav']?.listStyle || {}),
           }}
         >
           {navItems.map((item, index) => (
-            <li key={item.id || index}>
+            <li key={item.id || index} data-element-id={`navItem-${index}`}
+  style={{ ...(elements[`navItem-${index}`]?.style || {}) }} >
               <EditableText
                 tag="a"
                 text={item.content}
                 onChange={(val) => onNavItemChange(index, val)}
                 className={styles.navLink}
-                style={{
-                  textDecoration: "none",
-                  whiteSpace: "nowrap",
-                  ...(elements.nav?.itemStyle || {}),
-                }}
+                
+                 
+  style={{ ...(elements[`navItem-${index}`]?.style || {}), ...(elements[`navItem-${index}`]?.textStyle || {}) }}
+                
               />
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* CTA */}
+      {/* CTA buttons */}
       <div
         className={styles.cta}
-        style={{
-          flex: "0 0 auto",
-          marginTop: "0.5rem",
-          display: "flex",
-          gap: "0.5rem",
-          flexWrap: "wrap",
-          ...(elements.cta?.style || {}),
-        }}
         data-element-id="cta"
+        style={{
+          flex: '0 0 auto',
+          marginTop: '0.5rem',
+          display: 'flex',
+          gap: '0.5rem',
+          flexWrap: 'wrap',
+          ...(elements['cta']?.style || {}),
+        }}
       >
-        {ctaItems.map((cta, index) => (
-          <EditableText
-            key={cta.id || index}
-            tag="a"
-            text={cta.content}
-            onChange={(val) => onCtaChange(index, val)}
-            className={styles.ctaButton}
-            style={{
-              display: "inline-block",
-              padding: "0.25rem 0.5rem",
-              whiteSpace: "nowrap",
-              ...(elements.cta?.itemStyle || {}),
-            }}
-          />
-        ))}
+        {/* CTA buttons */}
+{ctaItems.map((cta, index) => {
+  const elemStyles = elements[`cta-${index}`] || {};
+  return (
+    <div
+      key={cta.id || index}
+      data-element-id={`cta-${index}`}
+       style={{
+        ...(elemStyles.style || {}), // only individual CTA style
+      }}
+    >
+      <EditableText
+        tag="span"
+        text={cta.content}
+        onChange={(val) => onCtaChange(index, val)}
+        className={styles.ctaButton}
+        style={{ ...(elemStyles.style || {}), ...(elemStyles.textStyle || {}) }} // inner text style
+      />
+    </div>
+  );
+})}
+
       </div>
     </header>
   );

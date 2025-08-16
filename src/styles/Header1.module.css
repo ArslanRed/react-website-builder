@@ -4,7 +4,7 @@
   align-items: center;
   padding: 1rem 2rem;
   background-color: #1e293b; /* dark slate blue */
-  color: #f8fafc; /* off-white text */
+  
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   border-radius: 0 0 16px 16px;
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -37,7 +37,7 @@
 }
 
 .navList a {
-  color: #f8fafc;
+ 
   font-weight: 500;
   text-decoration: none;
   padding: 0.5rem 0.8rem;
