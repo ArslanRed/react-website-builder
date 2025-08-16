@@ -1,7 +1,7 @@
-import Header1 from './Header1';
-import Header2 from './Header2';
-import Hero from './Hero.jsx';
-import Footer1 from './Footer1.jsx';
+import Header1 from "./Header1";
+import Header2 from "./Header2";
+import Hero from "./Hero";
+import Footer1 from "./Footer1";
 
 export const componentMap = {
   header1: Header1,
@@ -11,28 +11,45 @@ export const componentMap = {
 };
 
 export const defaultPropsMap = {
-  header1: { 
-    title: "My Site", 
-    navItems: [{ content: "Home" }, { content: "About" }], 
-    ctaItems: [{ content: "Get Started" }] 
+  header1: {
+    title: "My Site",
+    navItems: [{ content: "Home" }, { content: "About" }],
+    ctaItems: [{ content: "Get Started" }],
+    style: {}, // 🔹 block-level styles (applied to <header>)
+    elements: {
+      logo: { style: {}, textStyle: {} },
+      nav: { style: {}, listStyle: {}, itemStyle: {} },
+      cta: { style: {}, itemStyle: {} },
+    },
   },
-  header2: { 
-    title: "Header 2", 
-    navItems: [], 
-    ctaItems: [] 
+  header2: {
+    title: "Header 2",
+    navItems: [],
+    ctaItems: [],
+    style: {},
+    elements: {},
   },
-  hero: { 
-    title: "Hero Title", 
-    subtitle: "Hero Subtitle" 
+  hero: {
+    title: "Hero Title",
+    subtitle: "Hero Subtitle",
+    style: {},
+    elements: {
+      title: { textStyle: {} },
+      subtitle: { textStyle: {} },
+    },
   },
-  footer1: { 
-    text: "© 2025 My Company" 
+  footer1: {
+    text: "© 2025 My Company",
+    style: {},
+    elements: {
+      text: { textStyle: {} },
+    },
   },
 };
 
 export const components = [
-  { id: 'header1', name: 'Header Style 1' },
-  { id: 'header2', name: 'Header Style 2' },
-  { id: 'hero', name: 'Hero Section' },
-  { id: 'footer1', name: 'Footer' },
+  { id: "header1", name: "Header Style 1" },
+  { id: "header2", name: "Header Style 2" },
+  { id: "hero", name: "Hero Section" },
+  { id: "footer1", name: "Footer" },
 ];

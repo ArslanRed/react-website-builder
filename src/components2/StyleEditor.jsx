@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 
 export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
   const [styleValues, setStyleValues] = useState({});
-  const [contentValue, setContentValue] = useState("");
 
   // Recursive helpers
   function findElementById(elements, id) {
@@ -17,22 +16,14 @@ export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
   }
 
   function updateElementStyle(elements, id, key, value) {
-    return elements.map(el => {
+    return elements.map((el) => {
       if (el.id === id) return { ...el, style: { ...el.style, [key]: value } };
       if (el.elements) return { ...el, elements: updateElementStyle(el.elements, id, key, value) };
       return el;
     });
   }
 
-  function updateElementContent(elements, id, content) {
-    return elements.map(el => {
-      if (el.id === id) return { ...el, content };
-      if (el.elements) return { ...el, elements: updateElementContent(el.elements, id, content) };
-      return el;
-    });
-  }
-
-  // Load styles/content for selected target
+  // Load styles for selected target
   useEffect(() => {
     if (!selectedTarget?.blockId) return;
 
@@ -41,12 +32,10 @@ export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
 
     if (selectedTarget.type === "block") {
       setStyleValues(block.style || {});
-      setContentValue(block.content || "");
     } else if (selectedTarget.type === "element") {
       const element = findElementById(block.elements || [], selectedTarget.elementId);
       if (!element) return;
       setStyleValues(element.style || {});
-      setContentValue(element.content || "");
     }
   }, [selectedTarget, blocks]);
 
@@ -55,36 +44,15 @@ export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
     setStyleValues((prev) => ({ ...prev, [key]: value }));
 
     updateBlocks(
-      blocks.map(block => {
+      blocks.map((block) => {
         if (block.id !== selectedTarget.blockId) return block;
 
         if (selectedTarget.type === "block") {
-          return { ...block, style: { ...block.style, [key]: value }, content: contentValue };
+          return { ...block, style: { ...block.style, [key]: value } };
         } else if (selectedTarget.type === "element") {
           return {
             ...block,
-            elements: updateElementStyle(block.elements || [], selectedTarget.elementId, key, value)
-          };
-        }
-        return block;
-      })
-    );
-  };
-
-  // Handle content changes
-  const handleContentChange = (value) => {
-    setContentValue(value);
-
-    updateBlocks(
-      blocks.map(block => {
-        if (block.id !== selectedTarget.blockId) return block;
-
-        if (selectedTarget.type === "block") {
-          return { ...block, content: value };
-        } else if (selectedTarget.type === "element") {
-          return {
-            ...block,
-            elements: updateElementContent(block.elements || [], selectedTarget.elementId, value)
+            elements: updateElementStyle(block.elements || [], selectedTarget.elementId, key, value),
           };
         }
         return block;
@@ -108,17 +76,6 @@ export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
       }}
     >
       <h3 style={{ marginTop: 0 }}>Style Editor</h3>
-
-      {/* Text / Content */}
-      <div>
-        <label>Text / Content:</label>
-        <textarea
-          value={contentValue}
-          onChange={(e) => handleContentChange(e.target.value)}
-          rows={3}
-          style={{ width: "100%", marginBottom: 8 }}
-        />
-      </div>
 
       {/* Background Color */}
       <div>
