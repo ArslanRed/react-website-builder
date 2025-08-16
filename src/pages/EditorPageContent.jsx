@@ -5,7 +5,8 @@ import GridEditor from '../components/GridEditor';
 import ExportButton from '../components/ExportButton';
 import { themes } from '../components/themes';
 import Ecommerce from '../components/AllThemes/Ecommerce';
-import '../styles/EditorPageContent.css'
+import '../styles/EditorPageContent.css';
+
 export default function EditorPageContent() {
   const { userThemeConfig, setUserThemeConfig } = useUserTheme();
   const [mode, setMode] = useState('initial'); // initial | themeSelected | buildCustomTheme
@@ -45,115 +46,72 @@ export default function EditorPageContent() {
     });
   };
 
-  const handleContentChange = (newContent) => {
-    setUserThemeConfig((prev) => ({ ...prev, content: newContent }));
-  };
-
   const showCard = mode === 'initial';
   const showThemesGrid = mode === 'initial';
   const showThemeContent = mode === 'themeSelected' || mode === 'buildCustomTheme';
 
   return (
-    <div style={{ height: '100%',
-    overflowY: 'auto',
-    overflowX: 'hidden', // hide horizontal scroll
-    padding: '1rem',
-    boxSizing: 'border-box',}}>
-      <main
-        style={{
-         
-          height: '100%',
-          overflowY: 'auto',
-          padding: '1rem',
-          boxSizing: 'border-box',
-         
-        }}
-      >
-        <h2>Website Builder Editor</h2>
+    <div className="editor-page-container">
+      {showCard && (
+        <div className="editor-center-content">
+          <h2 className="editor-title">Website Builder Editor</h2>
 
-        {mode !== 'initial' && (
-          <button
-            onClick={handleShowThemes}
-            style={{
-              cursor: 'pointer',
-              padding: '0.5rem 1rem',
-              fontSize: '1rem',
-              borderRadius: 6,
-              border: '1px solid #4f46e5',
-              backgroundColor: 'white',
-              color: '#4f46e5',
-              marginBottom: '1rem',
-            }}
-          >
-            Show Themes
-          </button>
-        )}
+          <div className="editor-buttons">
+            <button className="build-theme-btn" onClick={handleBuildCustomTheme}>
+              Build Your Own Custom Theme
+            </button>
+          </div>
 
-        {(mode === 'initial' || mode === 'themeSelected') && (
-          <button
-            onClick={handleBuildCustomTheme}
-            style={{
-              cursor: 'pointer',
-              padding: '0.5rem 1rem',
-              fontSize: '1rem',
-              borderRadius: 6,
-              border: 'none',
-              backgroundColor: '#4f46e5',
-              color: 'white',
-              marginLeft: '1rem',
-              marginBottom: '1rem',
-            }}
-          >
-            Build Your Own Custom Theme
-          </button>
-        )}
-
-        {showCard && (
-          <div
-            style={{
-              border: '1px solid #ccc',
-              borderRadius: 8,
-              padding: '1rem',
-              marginBottom: '1rem',
-              background: '#fafafa',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-              maxWidth: 600,
-            }}
-          >
+          <div className="welcome-card">
             <h3>Welcome to the Editor!</h3>
             <p>Select a theme below or build your own custom theme by dragging components.</p>
           </div>
-        )}
 
-        {showThemesGrid && (
-          <>
-            <ThemesGrid selectedThemeId={userThemeConfig.themeId} onSelectTheme={handleSelectTheme} />
-            <p style={{ marginTop: '1rem', color: '#555' }}>
-              Select a theme to start building your website.
-            </p>
-          </>
-        )}
+          <ThemesGrid selectedThemeId={userThemeConfig.themeId} onSelectTheme={handleSelectTheme} />
+          <p className="select-theme-text">
+            Select a theme to start building your website.
+          </p>
 
-        {showThemeContent && (
-          <>
+          <div className="export-button-wrapper">
+            <ExportButton
+              mode={mode}
+              themeComponents={userThemeConfig.components}
+              content={userThemeConfig.content}
+            />
+          </div>
+        </div>
+      )}
+
+      {showThemeContent && (
+        <div className="theme-editor-wrapper">
+          <div className="theme-editor-header">
+            <div className="editor-buttons">
+              <button className="show-themes-btn" onClick={handleShowThemes}>
+                Show Themes
+              </button>
+              <button className="build-theme-btn" onClick={handleBuildCustomTheme}>
+                Build Your Own Custom Theme
+              </button>
+            </div>
+          </div>
+
+          <div className="theme-editor-grid">
             {selectedTheme?.fullComponent === 'Ecommerce' ? (
               <Ecommerce />
             ) : (
-              <div className="theme-container" >
-                <GridEditor />
-              </div>
+              <GridEditor />
             )}
-          </>
-        )}
+          </div>
 
-        <div style={{ marginTop: '2rem' }}>
-          <ExportButton
-            mode={mode}
-            themeComponents={userThemeConfig.components}
-            content={userThemeConfig.content}
-          />
+          <div className="export-button-wrapper">
+            <ExportButton
+              mode={mode}
+              themeComponents={userThemeConfig.components}
+              content={userThemeConfig.content}
+            />
+          </div>
         </div>
-      </main>
+      )}
     </div>
   );
 }

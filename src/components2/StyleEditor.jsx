@@ -38,7 +38,6 @@ export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
       const element = findElementById(block.elements || [], selectedTarget.elementId);
       if (!element) return;
 
-      // Automatically detect whether to use textStyle or style
       const useTextStyle = selectedTarget.elementId !== "cta";
       setIsTextStyle(useTextStyle);
       setStyleValues(useTextStyle ? element.textStyle || {} : element.style || {});
@@ -75,38 +74,18 @@ export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
       : "Element Styles";
 
   return (
-    <div
-      style={{
-        padding: 16,
-        
-        maxHeight: "100%",
-        overflowY: "auto",
-        fontFamily: "system-ui, sans-serif",
-        backgroundColor: "#b2aab6",
-        borderLeft: "1px solid #ddd",
-        color: "#333",
-      }}
-    >
-      <h3
-        style={{
-          marginBottom: 16,
-          fontSize: 16,
-          fontWeight: 600,
-          borderBottom: "1px solid #ddd",
-          paddingBottom: 8,
-        }}
-      >
-        {headerText}
-      </h3>
+    <div className="style-editor">
+      <h3 className="style-editor-header">{headerText}</h3>
 
       <StyleInput label="Background" type="color" value={styleValues.backgroundColor || "#ffffff"} onChange={(val) => handleStyleChange("backgroundColor", val)} />
       <StyleInput label="Text Color" type="color" value={styleValues.color || "#000000"} onChange={(val) => handleStyleChange("color", val)} />
       <StyleInput label="Font Size" type="number" value={fontSizeValue} onChange={(val) => handleStyleChange("fontSize", `${val}px`)} />
       <StyleInput label="Font Family" type="text" value={styleValues.fontFamily || ""} onChange={(val) => handleStyleChange("fontFamily", val)} />
-      <StyleCheckbox label="Bold" checked={styleValues.fontWeight === "bold"} onChange={(checked) => handleStyleChange("fontWeight", checked ? "bold" : "normal")} />
-      <StyleCheckbox label="Italic" checked={styleValues.fontStyle === "italic"} onChange={(checked) => handleStyleChange("fontStyle", checked ? "italic" : "normal")} />
+      <div className="text-style-options">
+  <StyleCheckbox label="Bold" checked={styleValues.fontWeight === "bold"} onChange={(checked) => handleStyleChange("fontWeight", checked ? "bold" : "normal")} />
+  <StyleCheckbox label="Italic" checked={styleValues.fontStyle === "italic"} onChange={(checked) => handleStyleChange("fontStyle", checked ? "italic" : "normal")} />
+</div>
 
-      {/* Show these for both block and element */}
       <StyleInput label="Border" type="text" value={styleValues.border || ""} onChange={(val) => handleStyleChange("border", val)} />
       <StyleInput label="Border Radius" type="text" value={styleValues.borderRadius || ""} onChange={(val) => handleStyleChange("borderRadius", val)} />
       <StyleInput label="Margin" type="text" value={styleValues.margin || ""} onChange={(val) => handleStyleChange("margin", val)} />
@@ -115,35 +94,22 @@ export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
   );
 }
 
-// Styled Input component
 function StyleInput({ label, type, value, onChange }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", marginBottom: 12 }}>
-      <label style={{ marginBottom: 4, fontSize: 13, fontWeight: 500, color: "#555" }}>{label}</label>
+    <div className="style-input">
+      <label>{label}</label>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(type === "number" ? parseInt(e.target.value, 10) : e.target.value)}
-        style={{
-          padding: 8,
-          fontSize: 14,
-          borderRadius: 6,
-          border: "1px solid #ccc",
-          background: "#fff",
-          outline: "none",
-          transition: "border 0.2s",
-        }}
-        onFocus={(e) => (e.target.style.border = "1px solid #1976d2")}
-        onBlur={(e) => (e.target.style.border = "1px solid #ccc")}
       />
     </div>
   );
 }
 
-// Styled Checkbox component
 function StyleCheckbox({ label, checked, onChange }) {
   return (
-    <label style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12, fontSize: 13, cursor: "pointer", color: "#555" }}>
+    <label className="style-checkbox">
       <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
       {label}
     </label>

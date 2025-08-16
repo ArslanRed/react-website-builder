@@ -247,6 +247,16 @@ export default function GridEditor() {
   return () => window.removeEventListener("keydown", handleKeyDown);
 }, [selectedTarget, history, future, gridItems]);
 
+const [gridHeight, setGridHeight] = useState(0);
+
+useEffect(() => {
+  // Calculate max bottom edge of all items
+  const maxHeight = gridItems.reduce((max, item) => {
+    const bottom = item.position.y + item.size.height;
+    return bottom > max ? bottom : max;
+  }, 0);
+  setGridHeight(maxHeight + 20); // add some padding
+}, [gridItems]);
 
   return (
     <div className="theme-container">
@@ -274,6 +284,8 @@ export default function GridEditor() {
             dropRef.current = node;
           }}
           className="grid-area"
+  style={{ height: gridHeight }}
+
         >
           {gridItems.map((item) => {
             const Comp = componentMap[item.type];

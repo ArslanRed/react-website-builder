@@ -1,3 +1,111 @@
+/* Main container */
+.editor-page-container {
+  height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 1rem;
+}
+
+/* Centered content for initial welcome screen */
+.editor-center-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+  width: 100%;
+}
+
+/* Titles */
+.editor-title {
+  font-size: 2rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+/* Buttons container */
+.editor-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+/* Individual buttons */
+.build-theme-btn,
+.show-themes-btn {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border-radius: 6px;
+  border: none;
+  background-color: #4f46e5;
+  color: white;
+  transition: background-color 0.2s;
+}
+
+.show-themes-btn {
+  background-color: white;
+  color: #4f46e5;
+  border: 1px solid #4f46e5;
+}
+
+.build-theme-btn:hover,
+.show-themes-btn:hover {
+  opacity: 0.85;
+}
+
+/* Welcome card */
+.welcome-card {
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fafafa;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  max-width: 600px;
+  width: 100%;
+}
+
+/* Themes grid */
+.select-theme-text {
+  margin-top: 1rem;
+  color: #555;
+}
+
+/* Theme editor layout */
+.theme-editor-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  gap: 1rem;
+}
+
+/* Top buttons in theme editor */
+.theme-editor-header {
+  display: flex;
+  justify-content: flex-start;
+  gap: 1rem;
+}
+
+/* Grid editor fills remaining space */
+.theme-editor-grid {
+  flex-grow: 1;
+  min-height: 400px;
+  width: 100%;
+}
+
+/* Export button always at bottom */
+.export-button-wrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
 /* Theme container fills full viewport */
 .theme-container {
   width: 100%; /* instead of 100vw */
@@ -28,17 +136,24 @@
   background-color: #b2aab6;
   text-align: center;
   flex-shrink: 0;
+  font-family: system-ui, sans-serif;
 }
 
 /* Sidebar draggable items */
 .sidebar-item {
-  padding: 0.5rem;
-  margin-bottom: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  margin-bottom: 0.6rem;
   border: 1px solid #aaa;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: grab;
   user-select: none;
   background-color: #fff;
+  transition: all 0.2s;
+}
+.sidebar-item:hover {
+  border-color: #1976d2;
+  background-color: #e8e8e8;
+  transform: translateY(-2px);
 }
 
 /* Canvas / editor area */
@@ -49,6 +164,8 @@
   overflow-x: hidden;
   background: #f9f9f9;
   min-height: 100%;
+  transition: height 0.3s ease;
+  padding: 12px;
 }
 
 /* Each Rnd draggable item */
@@ -58,14 +175,95 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  border-radius: 6px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+.grid-item:hover {
+  border-color: #1976d2;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-/* Style editor on right */
-.style-editor-container {
-  width: 220px;
-  border-left: 1px solid #ccc;
-  background: #f7f7f7;
-  flex-shrink: 0;
+/* Style editor container */
+.style-editor {
+  padding: 20px;
+  height: 100%; 
   overflow-y: auto;
-  min-height: 100%;
+  font-family: system-ui, sans-serif;
+  background-color: #b2aab6;
+  border-left: 2px solid #000000;
+  color: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  text-align: left;
+  gap: 12px;
+}
+
+/* Header */
+.style-editor h3 {
+  margin-bottom: 20px;
+  font-size: 18px;
+  font-weight: 700;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 10px;
+  text-align: center;
+}
+
+/* Style input wrapper */
+.style-input {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 14px;
+}
+
+/* Label */
+.style-input label {
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #000000;
+}
+
+/* Input field */
+.style-input input {
+  padding: 10px 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+.style-input input:focus {
+  border: 1px solid #1976d2;
+  box-shadow: 0 0 4px rgba(25, 118, 210, 0.4);
+}
+
+/* Checkbox wrapper */
+.style-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #000000;
+  font-weight: 500;
+}
+
+/* Bold & Italic options on same line */
+.text-style-options {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+/* Checkbox input */
+.style-checkbox input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: #1976d2;
 }
