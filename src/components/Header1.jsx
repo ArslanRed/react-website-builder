@@ -70,42 +70,30 @@ function Header1({
         </ul>
       </nav>
 
-      {/* CTA buttons */}
-      <div
-        className={styles.cta}
-        data-element-id="cta"
-        style={{
-          flex: '0 0 auto',
-          marginTop: '0.5rem',
-          display: 'flex',
-          gap: '0.5rem',
-          flexWrap: 'wrap',
-          ...(elements['cta']?.style || {}),
-        }}
-      >
-        {/* CTA buttons */}
-{ctaItems.map((cta, index) => {
-  const elemStyles = elements[`cta-${index}`] || {};
-  return (
-    <div
-      key={cta.id || index}
-      data-element-id={`cta-${index}`}
-       style={{
-        ...(elemStyles.style || {}), // only individual CTA style
-      }}
-    >
-      <EditableText
-        tag="span"
-        text={cta.content}
-        onChange={(val) => onCtaChange(index, val)}
-        className={styles.ctaButton}
-        style={{ ...(elemStyles.style || {}), ...(elemStyles.textStyle || {}) }} // inner text style
-      />
-    </div>
-  );
-})}
+   {/* CTA buttons */}
+{/* Single CTA button */}
+<div
+className = {styles.ctaButton}
+  data-element-id="cta"
+  style={{
+    ...(elements['cta']?.style || {}), // container styles: background, padding, border, etc.
+    display: 'inline-block',           // ensures background applies correctly
+  }}
+>
+  <EditableText
+    tag="span"
+    text={ctaItems[0]?.content || "CTA"} // single CTA text
+    onChange={(val) => onCtaChange(0, val)}
+    style={{
+      ...(elements['cta']?.textStyle || {}), // only text styles: color, fontSize, fontWeight
+    }}
+  />
+</div>
 
-      </div>
+
+
+
+      
     </header>
   );
 }

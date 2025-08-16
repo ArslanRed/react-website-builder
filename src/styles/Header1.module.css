@@ -51,7 +51,7 @@
 }
 
 .ctaButton {
-  background: linear-gradient(90deg, #f59e0b, #fcd34d); /* gradient CTA */
+  background-color: #334155; /* gradient CTA */
   color: #1e293b;
   font-weight: 600;
   padding: 0.45rem 1rem;

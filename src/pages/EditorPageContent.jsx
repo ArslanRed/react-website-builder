@@ -54,7 +54,11 @@ export default function EditorPageContent() {
   const showThemeContent = mode === 'themeSelected' || mode === 'buildCustomTheme';
 
   return (
-    <div style={{ display: 'flex', height: '100vh', boxSizing: 'border-box' ,  textAlign:'center'}}>
+    <div style={{ height: '100%',
+    overflowY: 'auto',
+    overflowX: 'hidden', // hide horizontal scroll
+    padding: '1rem',
+    boxSizing: 'border-box',}}>
       <main
         style={{
          

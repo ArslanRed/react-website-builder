@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState, useCallback } from "react";
+import React, { useMemo, useRef, useState, useCallback, useEffect } from "react";
 import { Rnd } from "react-rnd";
 import { createRoot } from "react-dom/client";
 import { useUserTheme } from "../contexts/UserThemeContext";
@@ -8,17 +8,14 @@ import { useDrag, useDrop } from "react-dnd";
 import StyleEditor from "../components2/StyleEditor";
 
 const ItemTypes = { COMPONENT: "component" };
+const VIRTUAL_GRID_WIDTH = window.innerWidth; // full screen width
 
 function SidebarItem({ compId }) {
   const [, drag] = useDrag(() => ({
     type: ItemTypes.COMPONENT,
     item: { compId },
   }));
-  return (
-    <div ref={drag} className="sidebar-item">
-      {compId}
-    </div>
-  );
+  return <div ref={drag} className="sidebar-item">{compId}</div>;
 }
 
 function elementsObjToArray(elementsObj = {}) {
@@ -47,6 +44,30 @@ export default function GridEditor() {
   const [gridItems, setGridItems] = useState([]);
   const [selectedTarget, setSelectedTarget] = useState(null);
   const dropRef = useRef(null);
+
+  const [history, setHistory] = useState([]);
+  const [future, setFuture] = useState([]);
+
+  const pushHistory = (newState) => {
+    setHistory((prev) => [...prev, newState]);
+    setFuture([]);
+  };
+
+  const undo = () => {
+    if (!history.length) return;
+    const lastState = history[history.length - 1];
+    setHistory((prev) => prev.slice(0, prev.length - 1));
+    setFuture((prev) => [gridItems, ...prev]);
+    setGridItems(lastState);
+  };
+
+  const redo = () => {
+    if (!future.length) return;
+    const nextState = future[0];
+    setFuture((prev) => prev.slice(1));
+    setHistory((prev) => [...prev, gridItems]);
+    setGridItems(nextState);
+  };
 
   const getDefaultSize = (type) => {
     const sizeMap = {
@@ -88,9 +109,16 @@ export default function GridEditor() {
       id: uuidv4(),
       type,
       props,
-      position: { x, y },
-      size: { width, height },
+      position: {
+        x: (x / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH,
+        y,
+      },
+      size: {
+        width: (width / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH,
+        height,
+      },
     };
+    pushHistory([...gridItems]);
     setGridItems((prev) => [...prev, newItem]);
     setUserThemeConfig((prev) => ({
       ...prev,
@@ -111,17 +139,49 @@ export default function GridEditor() {
     },
   }));
 
-  const updatePosition = (id, x, y) =>
-    setGridItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, position: { x, y } } : item))
-    );
-
-  const updateSize = (id, width, height, position) =>
+  const updatePosition = (id, x, y) => {
+    pushHistory([...gridItems]);
     setGridItems((prev) =>
       prev.map((item) =>
-        item.id === id ? { ...item, size: { width, height }, position } : item
+        item.id === id
+          ? {
+              ...item,
+              position: {
+                x: (x / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH,
+                y,
+              },
+            }
+          : item
       )
     );
+  };
+
+  const updateSize = (id, width, height, position) => {
+    pushHistory([...gridItems]);
+    setGridItems((prev) =>
+      prev.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              size: {
+                width: (width / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH,
+                height,
+              },
+              position: {
+                x: (position.x / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH,
+                y: position.y,
+              },
+            }
+          : item
+      )
+    );
+  };
+
+  const deleteComponent = (id) => {
+    pushHistory([...gridItems]);
+    setGridItems((prev) => prev.filter((item) => item.id !== id));
+    if (selectedTarget?.blockId === id) setSelectedTarget(null);
+  };
 
   const blocks = useMemo(
     () =>
@@ -135,6 +195,7 @@ export default function GridEditor() {
 
   const updateBlocks = useCallback(
     (nextBlocks) => {
+      pushHistory([...gridItems]);
       setGridItems((prev) =>
         prev.map((gi) => {
           const updated = nextBlocks.find((b) => b.id === gi.id);
@@ -149,11 +210,12 @@ export default function GridEditor() {
         })
       );
     },
-    [setGridItems]
+    [gridItems]
   );
 
   const handleCanvasClick = useCallback(
     (e, itemId) => {
+      e.stopPropagation();
       const el = e.target.closest("[data-element-id]");
       const elementId = el?.getAttribute("data-element-id");
       if (elementId && elementId !== "header") {
@@ -165,10 +227,30 @@ export default function GridEditor() {
     []
   );
 
+  // Keyboard shortcuts
+  useEffect(() => {
+  const handleKeyDown = (e) => {
+    const tag = e.target.tagName.toLowerCase();
+    const isEditable = e.target.isContentEditable || tag === "input" || tag === "textarea";
+    if (isEditable) return; // ignore typing inside editable fields
+
+    if ((e.ctrlKey || e.metaKey) && e.key === "z") {
+      undo();
+    } else if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.shiftKey && e.key === "Z"))) {
+      redo();
+    } else if (e.key === "Delete" || e.key === "Backspace") {
+      if (selectedTarget?.blockId) deleteComponent(selectedTarget.blockId);
+    }
+  };
+
+  window.addEventListener("keydown", handleKeyDown);
+  return () => window.removeEventListener("keydown", handleKeyDown);
+}, [selectedTarget, history, future, gridItems]);
+
+
   return (
     <div className="theme-container">
       <div className="grid-editor-container">
-        {/* Sidebar */}
         <aside className="grid-sidebar">
           <h3>Components</h3>
           {Object.keys(componentMap).map((compId) => (
@@ -179,9 +261,13 @@ export default function GridEditor() {
             select the whole block, or click a labeled inner part (logo/nav/cta)
             to edit that element’s styles.
           </p>
+          <div style={{ marginTop: 20, display: "flex", gap: 8 }}>
+            <button onClick={undo} disabled={!history.length}>Undo</button>
+            <button onClick={redo} disabled={!future.length}>Redo</button>
+            <button onClick={() => selectedTarget && deleteComponent(selectedTarget.blockId)} disabled={!selectedTarget}>Delete</button>
+          </div>
         </aside>
 
-        {/* Canvas */}
         <div
           ref={(node) => {
             drop(node);
@@ -192,14 +278,24 @@ export default function GridEditor() {
           {gridItems.map((item) => {
             const Comp = componentMap[item.type];
             if (!Comp) return null;
+
             const isSelectedBlock = selectedTarget?.blockId === item.id && selectedTarget?.type === "block";
             const isSelectedElement = selectedTarget?.blockId === item.id && selectedTarget?.type === "element";
+
+            // scale items for editor display
+            const scale = dropRef.current ? dropRef.current.clientWidth / VIRTUAL_GRID_WIDTH : 1;
 
             return (
               <Rnd
                 key={item.id}
-                size={item.size}
-                position={item.position}
+                size={{
+                  width: item.size.width * scale,
+                  height: item.size.height,
+                }}
+                position={{
+                  x: item.position.x * scale,
+                  y: item.position.y,
+                }}
                 onDragStop={(e, d) => updatePosition(item.id, d.x, d.y)}
                 onResizeStop={(e, dir, ref, delta, position) =>
                   updateSize(item.id, ref.offsetWidth, ref.offsetHeight, position)
@@ -221,16 +317,7 @@ export default function GridEditor() {
           })}
         </div>
 
-        {/* Style Editor */}
-        <div
-          style={{
-            width: 300,
-            borderLeft: "1px solid #ccc",
-            background: "#f7f7f7",
-            flexShrink: 0,
-            position: "relative",
-          }}
-        >
+        <div className="style-editor-container">
           {selectedTarget ? (
             <StyleEditor selectedTarget={selectedTarget} blocks={blocks} updateBlocks={updateBlocks} />
           ) : (
