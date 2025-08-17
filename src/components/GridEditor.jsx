@@ -39,9 +39,9 @@ function elementsArrayToObj(elementsArr = [], prevObj = {}) {
   return next;
 }
 
-export default function GridEditor() {
+export default function GridEditor({ gridItems, setGridItems }) {
   const { setUserThemeConfig } = useUserTheme();
-  const [gridItems, setGridItems] = useState([]);
+
   const [selectedTarget, setSelectedTarget] = useState(null);
   const dropRef = useRef(null);
 
@@ -274,7 +274,14 @@ useEffect(() => {
           <div style={{ marginTop: 20, display: "flex", gap: 8 }}>
             <button onClick={undo} disabled={!history.length}>Undo</button>
             <button onClick={redo} disabled={!future.length}>Redo</button>
-            <button onClick={() => selectedTarget && deleteComponent(selectedTarget.blockId)} disabled={!selectedTarget}>Delete</button>
+            <button
+            onClick={() => selectedTarget && deleteComponent(selectedTarget.blockId)}
+            disabled={!selectedTarget}
+            className="delete-btn"
+          >
+            Delete
+          </button>
+
           </div>
         </aside>
 

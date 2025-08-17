@@ -2,15 +2,161 @@ import React from "react";
 import PropTypes from "prop-types";
 import JSZip from "jszip";
 import { saveAs } from "file-saver";
-import { componentMap } from "./ComponentMap"; // must have __sourceCode and __css
+import { componentMap } from "./componentMap";
 
-// Helper to capitalize component names
-function capitalize(str) {
-  return str.charAt(0).toUpperCase() + str.slice(1);
+/**
+ * Helpers
+ */
+const toPascal = (str = "") =>
+  String(str)
+    .replace(/(^\w|-\w|_\w)/g, (m) => m.replace(/[-_]/, "").toUpperCase());
+
+/** Deep clone + drop functions/undefined/symbols to keep JSON-safe props */
+const sanitizeForJSON = (val, seen = new WeakSet()) => {
+  if (val === null) return null;
+  const t = typeof val;
+  if (t === "function" || t === "undefined" || t === "symbol") return undefined;
+  if (t !== "object") return val;
+  if (seen.has(val)) return undefined; // avoid cycles
+  seen.add(val);
+
+  if (Array.isArray(val)) {
+    const arr = val
+      .map((v) => sanitizeForJSON(v, seen))
+      .filter((v) => v !== undefined);
+    return arr;
+  }
+
+  const out = {};
+  for (const [k, v] of Object.entries(val)) {
+    const s = sanitizeForJSON(v, seen);
+    if (s !== undefined) out[k] = s;
+  }
+  return out;
+};
+
+/** Merge editor layout into props.style (absolute positioning + size) */
+const mergeLayoutIntoProps = (item) => {
+  const base = item?.props || {};
+  const style = {
+    ...(base.style || {}),
+    position: "absolute",
+    left: item?.position?.x ?? 0,
+    top: item?.position?.y ?? 0,
+    width: item?.size?.width ?? "auto",
+    height: item?.size?.height ?? "auto",
+  };
+  return { ...base, style };
+};
+
+/** Pretty variable name for each block's props */
+const propsVarName = (type, idx) =>
+  `${toPascal(type)}Props_${String(idx + 1).padStart(2, "0")}`;
+
+/** Safe JSON → JS literal string (for embedding in code) */
+const toJSLiteral = (obj) => JSON.stringify(obj, null, 2);
+
+/** Optional: create a minimal stub if source is missing so the export builds */
+const makeStubSource = (pascalName) => `// Auto-generated stub: original source was not provided.
+export default function ${pascalName}(props){
+  if (typeof window !== 'undefined' && window.console) {
+    console.warn("[Exported Stub] \`${pascalName}\` source missing. Rendering an empty container.", props);
+  }
+  return null; // or return <div style={{position:'absolute', ...props?.style}} />;
 }
+`;
 
-export default function ExportButton({ mode, themeComponents, content, gridItems }) {
-  // ----- Existing Theme Export -----
+/** Escape text content for safe JSX */
+const escapeJSXText = (str = "") =>
+  String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+
+/** Convert saved elements (used by EditableText) into plain JSX — supports nesting */
+/** Convert saved elements (used by EditableText) into plain JSX — supports nesting */
+
+/** Convert saved elements (used by EditableText) into plain JSX — supports nesting */
+const renderPlainChildren = (elements = {}) => {
+  if (!elements || typeof elements !== "object") return "";
+
+  // React void/self-closing tags
+  const VOID_TAGS = new Set([
+    "area",
+    "base",
+    "br",
+    "col",
+    "embed",
+    "hr",
+    "img",
+    "input",
+    "link",
+    "meta",
+    "param",
+    "source",
+    "track",
+    "wbr",
+  ]);
+
+  return Object.entries(elements)
+    .map(([key, el]) => {
+      if (!el || typeof el !== "object") return "";
+
+      const tag = el.tag || "div";
+
+      // Collect attributes (preserve standard props beyond style)
+      const { textStyle, children, text, ...rest } = el;
+
+      // Build style string
+      const styleString =
+        textStyle && Object.keys(textStyle).length
+          ? ` style={${JSON.stringify(textStyle)}}`
+          : "";
+
+      // Build other attributes (href, src, alt, id, className, target, etc.)
+      const attrString = Object.entries(rest)
+        .filter(([k, v]) => v !== undefined && v !== null && k !== "tag")
+        .map(([k, v]) => {
+          if (typeof v === "string") {
+            return ` ${k}="${v.replace(/"/g, "&quot;")}"`;
+          }
+          if (typeof v === "boolean") {
+            return v ? ` ${k}` : "";
+          }
+          return ` ${k}={${JSON.stringify(v)}}`;
+        })
+        .join("");
+
+      // If void tag → self-closing
+      if (VOID_TAGS.has(tag.toLowerCase())) {
+        return `<${tag}${styleString}${attrString} />`;
+      }
+
+      // Children: recurse if nested, otherwise escape text
+      const inner =
+        children && Object.keys(children).length > 0
+          ? renderPlainChildren(children)
+          : escapeJSXText(text || "");
+
+      return `<${tag}${styleString}${attrString}>${inner}</${tag}>`;
+    })
+    .join("\n");
+};
+
+
+
+/**
+ * Component
+ */
+export default function ExportButton({
+  mode,
+  themeComponents,
+  content,
+  gridItems,
+}) {
+  /**
+   * 1) Export selected theme
+   */
   const handleExport = async () => {
     const zip = new JSZip();
 
@@ -20,9 +166,14 @@ export default function ExportButton({ mode, themeComponents, content, gridItems
     } else if (themeComponents.length > 0) {
       themeComponents.forEach((compId) => {
         const Comp = componentMap[compId];
-        if (Comp && Comp.__sourceCode && Comp.__css) {
-          zip.file(`${compId}.jsx`, Comp.__sourceCode);
-          zip.file(`${compId}.css`, Comp.__css);
+        const pascal = toPascal(compId);
+        if (Comp?.__sourceCode) {
+          zip.file(`${pascal}.jsx`, Comp.__sourceCode);
+          if (Comp.__files && typeof Comp.__files === "object") {
+            for (const [rel, content] of Object.entries(Comp.__files)) {
+              zip.file(rel, content);
+            }
+          }
         }
       });
     } else {
@@ -30,55 +181,64 @@ export default function ExportButton({ mode, themeComponents, content, gridItems
       return;
     }
 
-    zip.file("content.json", JSON.stringify(content, null, 2));
+    zip.file("content.json", JSON.stringify(content ?? {}, null, 2));
     const blob = await zip.generateAsync({ type: "blob" });
     saveAs(blob, "theme-export.zip");
   };
 
-  // ----- Hybrid Export (existing) -----
+  /**
+   * 2) Hybrid export
+   */
   const handleHybridExport = async () => {
-    if (!gridItems || gridItems.length === 0) {
+    if (!Array.isArray(gridItems) || gridItems.length === 0) {
       alert("No components to export.");
       return;
     }
 
     const zip = new JSZip();
-    // Collect unique components
-    const usedComponents = Array.from(new Set(gridItems.map((item) => item.type)));
 
-    // Add component files
-    usedComponents.forEach((compId) => {
+    const usedTypes = Array.from(new Set(gridItems.map((i) => i.type)));
+    usedTypes.forEach((compId) => {
       const Comp = componentMap[compId];
-      if (Comp && Comp.__sourceCode && Comp.__css) {
-        zip.file(`${compId}.jsx`, Comp.__sourceCode);
-        zip.file(`${compId}.css`, Comp.__css);
+      const pascal = toPascal(compId);
+      if (Comp?.__sourceCode) {
+        zip.file(`${pascal}.jsx`, Comp.__sourceCode);
+        if (Comp.__files) {
+          for (const [rel, content] of Object.entries(Comp.__files)) {
+            zip.file(rel, content);
+          }
+        }
+      } else {
+        zip.file(`${pascal}.jsx`, makeStubSource(pascal));
       }
     });
 
-    // Generate CustomTheme.jsx
-    const importsStr = usedComponents.map((c) => `import ${capitalize(c)} from "./${c}.jsx";`).join("\n");
-    const renderStr = gridItems
-      .map((item) => `  <${capitalize(item.type)} />`)
+    const imports = usedTypes
+      .map((t) => `import ${toPascal(t)} from "./${toPascal(t)}.jsx";`)
       .join("\n");
 
-    const customThemeCode = `
-${importsStr}
+    const body = gridItems
+      .map((item) => `      <${toPascal(item.type)} />`)
+      .join("\n");
+
+    const custom = `/* Auto-generated hybrid theme */
+${imports}
 
 export default function CustomTheme() {
   return (
     <div>
-${renderStr}
+${body}
     </div>
   );
 }
 `;
-    zip.file("CustomTheme.jsx", customThemeCode);
+    zip.file("CustomTheme.jsx", custom);
 
-    // Optional README
     const readme = `# Exported Hybrid Theme
 
-- CustomTheme.jsx: modular component layout
-- Component .jsx & .css files: ready to use
+- CustomTheme.jsx renders the modular components.
+- Each component file is included if available; missing sources are stubbed.
+- No editor logic is included.
 `;
     zip.file("README.md", readme);
 
@@ -86,83 +246,118 @@ ${renderStr}
     saveAs(blob, "hybrid-theme-export.zip");
   };
 
-  // ----- New dedicated Custom Theme Export -----
+  /**
+   * 3) Component-preserving export with EditableText stripped
+   */
   const handleExportCustomTheme = async () => {
-    if (!gridItems || gridItems.length === 0) {
+    if (!Array.isArray(gridItems) || gridItems.length === 0) {
       alert("No components to export.");
       return;
     }
 
     const zip = new JSZip();
 
-    // Collect unique components
-    const usedComponents = Array.from(new Set(gridItems.map((item) => item.type)));
+    const usedTypes = Array.from(new Set(gridItems.map((i) => i.type)));
+    const missing = [];
 
-    // Add component files
-    usedComponents.forEach((compId) => {
+    usedTypes.forEach((compId) => {
       const Comp = componentMap[compId];
-      if (Comp && Comp.__sourceCode && Comp.__css) {
-        zip.file(`${compId}.jsx`, Comp.__sourceCode);
-        zip.file(`${compId}.css`, Comp.__css);
+      const pascal = toPascal(compId);
+
+      if (Comp?.__sourceCode) {
+        zip.file(`${pascal}.jsx`, Comp.__sourceCode);
+
+        if (Comp.__files && typeof Comp.__files === "object") {
+          for (const [rel, content] of Object.entries(Comp.__files)) {
+            zip.file(rel, content);
+          }
+        }
+      } else {
+        zip.file(`${pascal}.jsx`, makeStubSource(pascal));
+        missing.push(pascal);
       }
     });
 
-    // Generate App.jsx with all props and sizes
-    const importsStr = usedComponents
-      .map((comp) => `import ${capitalize(comp)} from "./${comp}.jsx";`)
+    const importLines = usedTypes
+      .map((t) => `import ${toPascal(t)} from "./${toPascal(t)}.jsx";`)
       .join("\n");
 
-    const renderStr = gridItems
-      .map((item) => {
-        const combinedProps = { ...item.props };
-        if (item.size) {
-          combinedProps.style = {
-            ...(combinedProps.style || {}),
-            width: `${item.size.width}px`,
-            height: `${item.size.height}px`,
-          };
-        }
+    let propsSection = "";
+    let renderSection = "";
 
-        const propsStr = Object.entries(combinedProps)
-          .map(([key, value]) =>
-            typeof value === "object" ? `${key}={${JSON.stringify(value)}}` : `${key}=${JSON.stringify(value)}`
-          )
-          .join(" ");
+    gridItems.forEach((item, idx) => {
+      const pascal = toPascal(item.type);
 
-        return `  <${capitalize(item.type)} ${propsStr} />`;
-      })
-      .join("\n");
+      const mergedProps = mergeLayoutIntoProps(item);
+      const safeProps = sanitizeForJSON(mergedProps);
 
-    const appCode = `
-${importsStr}
+      const varName = propsVarName(item.type, idx);
+      propsSection += `const ${varName} = ${toJSLiteral(safeProps)};\n\n`;
 
-export default function App() {
+      const plainChildren = renderPlainChildren(safeProps.elements);
+      renderSection += `      <${pascal} {...${varName}}>\n${plainChildren}\n      </${pascal}>\n`;
+    });
+
+    const appCode = `/* Auto-generated by ExportButton: Custom Theme Export
+   - Preserves component names (Header1, Hero, Footer1, ...)
+   - Preserves user-edited props & element-level styles
+   - Preserves layout (absolute top/left/width/height)
+   - EditableText stripped → plain JSX tags
+*/
+${importLines}
+
+${propsSection}export default function App() {
   return (
-    <div>
-${renderStr}
+    <div style={{ position: "relative", minHeight: "100vh" }}>
+${renderSection.trimEnd()}
     </div>
   );
 }
 `;
-
     zip.file("App.jsx", appCode);
 
-    // Optional README
+    const layoutSnapshot = gridItems.map((item) => ({
+      id: item.id,
+      type: item.type,
+      position: item.position,
+      size: item.size,
+      props: sanitizeForJSON(item.props || {}),
+    }));
+    zip.file("layout.json", JSON.stringify(layoutSnapshot, null, 2));
+
     const readme = `# Exported Custom Theme
 
-- App.jsx: main entry with your components in correct order & sizes
-- Component .jsx & .css files: ready to use
-- All inline styles reflect the user-customized layout
+This zip contains:
+- **App.jsx** — imports your components and renders them with user-edited props.
+- **layout.json** — a snapshot of gridItems for rehydration/migrations.
+- **<Component>.jsx** — the original component source (if provided), otherwise a stub.
+- **Any extra files** declared under \`__files\`.
+
+## How EditableText is handled
+- In the editor: components use <EditableText>.
+- In the export: these are replaced with plain HTML tags (<h1>, <p>, <a>, etc.).
+- No dependency on EditableText remains.
+
+${
+  missing.length
+    ? `## Missing component sources
+The following components did not provide \`__sourceCode\`:
+
+- ${missing.join("\n- ")}
+
+Stubs were generated so the export still builds.
+`
+    : ""
+}
 `;
     zip.file("README.md", readme);
 
-    // Generate ZIP
     const blob = await zip.generateAsync({ type: "blob" });
     saveAs(blob, "custom-theme.zip");
   };
 
   return (
-    <div style={{ display: "flex", gap: "10px" }}>
+    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
       <button
         onClick={handleExport}
         style={{
@@ -188,7 +383,7 @@ ${renderStr}
           padding: "0.5rem 1rem",
           cursor: "pointer",
         }}
-        title="Export ready-to-build custom theme"
+        title="Export ready-to-build custom theme preserving components + layout + edits"
       >
         Export Live Changes
       </button>
@@ -203,7 +398,7 @@ ${renderStr}
           padding: "0.5rem 1rem",
           cursor: "pointer",
         }}
-        title="Export live snapshot + original components + modular CustomTheme.jsx"
+        title="Export live snapshot + original components + CustomTheme.jsx"
       >
         Export Hybrid Theme
       </button>
@@ -220,17 +415,17 @@ ExportButton.propTypes = {
   }),
   gridItems: PropTypes.arrayOf(
     PropTypes.shape({
-      id: PropTypes.string,
-      type: PropTypes.string,
+      id: PropTypes.string.isRequired,
+      type: PropTypes.string.isRequired,
+      position: PropTypes.shape({ x: PropTypes.number, y: PropTypes.number })
+        .isRequired,
+      size: PropTypes.shape({ width: PropTypes.number, height: PropTypes.number })
+        .isRequired,
       props: PropTypes.object,
-      size: PropTypes.shape({ width: PropTypes.number, height: PropTypes.number }),
     })
   ).isRequired,
 };
 
 ExportButton.defaultProps = {
-  content: {
-    heading: "",
-    paragraph: "",
-  },
+  content: { heading: "", paragraph: "" },
 };

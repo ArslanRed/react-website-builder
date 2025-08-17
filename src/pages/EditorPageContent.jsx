@@ -7,9 +7,11 @@ import { themes } from '../components/themes';
 import Ecommerce from '../components/AllThemes/Ecommerce';
 import '../styles/EditorPageContent.css';
 
+
 export default function EditorPageContent() {
   const { userThemeConfig, setUserThemeConfig } = useUserTheme();
   const [mode, setMode] = useState('initial'); // initial | themeSelected | buildCustomTheme
+  const [gridItems, setGridItems] = useState([]); // add this at the top
 
   const selectedTheme = themes.find((t) => t.id === userThemeConfig.themeId);
 
@@ -77,6 +79,7 @@ export default function EditorPageContent() {
 
       {/* Initial full-screen welcome + 2-column layout */}
      {mode === 'initial' && (
+      
   <div className="welcome-fullscreen">
     <div className="welcome-card-full">
       <h3>Welcome to Your Website Editor!</h3>
@@ -112,7 +115,8 @@ export default function EditorPageContent() {
       {showThemeContent && (
         <div className="theme-editor-wrapper">
           <div className="theme-editor-grid">
-            {selectedTheme?.fullComponent === 'Ecommerce' ? <Ecommerce /> : <GridEditor />}
+            {selectedTheme?.fullComponent === 'Ecommerce' ? <Ecommerce /> : <GridEditor gridItems={gridItems} setGridItems={setGridItems} />
+}
           </div>
 
           {/* Export button only in theme editor or custom theme */}
@@ -121,6 +125,7 @@ export default function EditorPageContent() {
               mode={mode}
               themeComponents={userThemeConfig.components}
               content={userThemeConfig.content}
+              gridItems={gridItems}
             />
           </div>
         </div>

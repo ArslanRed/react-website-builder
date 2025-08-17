@@ -1,3 +1,4 @@
+
 /* Top title, always centered */
 .editor-main-title {
   text-align: center;
@@ -31,13 +32,13 @@
 
 /* Fullscreen welcome layout */
 .welcome-fullscreen {
-  min-height: 100vh;
+ 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
-  background: linear-gradient(135deg, #f0f4f8, #e8eff5);
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #000000, #e9ecf0);
   gap: 3rem;
   animation: fadeIn 0.8s ease-in-out;
 }
@@ -45,7 +46,7 @@
 .welcome-card-full {
   border-radius: 24px; /* rounder corners */
   padding: 4rem 5rem; /* bigger padding for grandeur */
-  background: linear-gradient(145deg, #6b5b95, #feb236);
+  background: linear-gradient(145deg, #af93f5, #2e1331);
   background-size: 400% 400%; /* for gradient animation */
   animation: gradientAnimation 15s ease infinite; /* smooth gradient shift */
   box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3); /* deeper shadow for 3D effect */
@@ -201,6 +202,7 @@
   height: 100%;
   width: 100%;
   gap: 1rem;
+  
 }
 
 /* Top buttons in theme editor */
@@ -232,6 +234,8 @@
   overflow: hidden; /* prevent horizontal scroll */
   box-sizing: border-box;
   background: #fff;
+  border: 2px solid rgb(47, 124, 143);
+  border-radius: 20px;
 }
 
 
@@ -256,6 +260,48 @@
   flex-shrink: 0;
   font-family: system-ui, sans-serif;
 }
+
+/* Common sidebar buttons */
+.grid-sidebar button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.5rem 0.7rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Undo & Redo buttons (purple gradient) */
+.grid-sidebar button:not(.delete-btn) {
+  background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+  color: #fff;
+}
+
+.grid-sidebar button:not(.delete-btn):hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.4);
+}
+
+/* Delete button (red) */
+.grid-sidebar .delete-btn {
+  background: linear-gradient(90deg, #e53935, #ef5350);
+  color: #fff;
+}
+
+.grid-sidebar .delete-btn:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 20px rgba(239, 83, 80, 0.5);
+}
+
+/* Disabled buttons */
+.grid-sidebar button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 
 /* Sidebar draggable items */
 .sidebar-item {
