@@ -1,80 +1,198 @@
-/* Main container */
-.editor-page-container {
-  height: 100%;
-  width: 100%;
-  box-sizing: border-box;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 1rem;
+/* Top title, always centered */
+.editor-main-title {
+  text-align: center;
+  font-size: 2.5rem; /* slightly bigger */
+  font-weight: 800; /* bolder */
+  margin-bottom: 2rem;
+  background: linear-gradient(90deg, #6b5b95, #9e7ba1, #faaa8d, #6b5b95);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientText 5s ease infinite; /* smooth gradient shift */
+  letter-spacing: 1.5px;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.15); /* subtle glow/shadow */
 }
 
-/* Centered content for initial welcome screen */
-.editor-center-content {
+/* Gradient animation for text */
+@keyframes gradientText {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+/* Centered buttons wrapper */
+.editor-toggle-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+
+/* Fullscreen welcome layout */
+.welcome-fullscreen {
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
+  padding: 2rem;
+  background: linear-gradient(135deg, #f0f4f8, #e8eff5);
+  gap: 3rem;
+  animation: fadeIn 0.8s ease-in-out;
+}
+
+.welcome-card-full {
+  border-radius: 24px; /* rounder corners */
+  padding: 4rem 5rem; /* bigger padding for grandeur */
+  background: linear-gradient(145deg, #6b5b95, #feb236);
+  background-size: 400% 400%; /* for gradient animation */
+  animation: gradientAnimation 15s ease infinite; /* smooth gradient shift */
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3); /* deeper shadow for 3D effect */
+  color: #fff;
   text-align: center;
+  max-width: 1000px; /* wider card */
   width: 100%;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 
-/* Titles */
-.editor-title {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+.welcome-card-full:hover {
+  transform: translateY(-10px) scale(1.05); /* lift effect */
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.35); /* stronger shadow on hover */
 }
 
-/* Buttons container */
-.editor-buttons {
+.welcome-card-full h3 {
+  font-size: 2.8rem; /* bigger headline */
+  font-weight: 800;
+  margin-bottom: 1.2rem;
+  letter-spacing: 1.2px;
+}
+
+.welcome-card-full p {
+  font-size: 1.3rem; /* more readable text */
+  line-height: 1.8;
+  opacity: 0.95;
+}
+
+/* Smooth animated gradient */
+@keyframes gradientAnimation {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+
+/* Two-column layout */
+.initial-two-columns {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
   justify-content: center;
-  margin-bottom: 1rem;
+  align-items: flex-start;
+  gap: 2.5rem;
+  width: 100%;
+  max-width: 1200px;
+  flex-wrap: wrap;
 }
 
-/* Individual buttons */
-.build-theme-btn,
-.show-themes-btn {
-  cursor: pointer;
-  padding: 0.5rem 1rem;
+/* Themes column */
+.themes-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Custom build card */
+.build-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem 2.5rem;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.build-card:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 14px 35px rgba(0,0,0,0.25);
+}
+.build-card h3 {
+  font-size: 1.9rem;
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+  color: #4f46e5;
+}
+.build-card p {
+  font-size: 1.05rem;
+  margin-bottom: 1.5rem;
+  color: #333;
+}
+
+/* Build button with modern hover */
+.build-card .build-theme-btn {
+  background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+  color: #fff;
+  font-weight: 600;
+  padding: 0.6rem 1.4rem;
+  border-radius: 8px;
+  transition: all 0.25s ease;
+}
+.build-card .build-theme-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+}
+.editor-toggle-buttons .build-theme-btn,
+.editor-toggle-buttons .show-themes-btn {
+  padding: 0.65rem 1.5rem;
   font-size: 1rem;
-  border-radius: 6px;
+  font-weight: 600;
+  border-radius: 8px;
   border: none;
-  background-color: #4f46e5;
-  color: white;
-  transition: background-color 0.2s;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 15px rgba(79, 70, 229, 0.2);
 }
 
-.show-themes-btn {
-  background-color: white;
+/* Build theme button */
+.editor-toggle-buttons .build-theme-btn {
+  background: linear-gradient(90deg, #4f46e5, #8b5cf6);
+  color: #fff;
+}
+
+.editor-toggle-buttons .build-theme-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.35);
+}
+
+/* Show themes button */
+.editor-toggle-buttons .show-themes-btn {
+  background: #fff;
   color: #4f46e5;
   border: 1px solid #4f46e5;
 }
 
-.build-theme-btn:hover,
-.show-themes-btn:hover {
-  opacity: 0.85;
+.editor-toggle-buttons .show-themes-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 8px 25px rgba(79, 70, 229, 0.25);
 }
 
-/* Welcome card */
-.welcome-card {
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 1rem;
-  background: #fafafa;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  max-width: 600px;
-  width: 100%;
-}
 
-/* Themes grid */
+/* "Select a theme" text */
 .select-theme-text {
-  margin-top: 1rem;
-  color: #555;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #444;
+  margin-top: 1.2rem;
 }
+
+/* Animations */
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+
 
 /* Theme editor layout */
 .theme-editor-wrapper {
