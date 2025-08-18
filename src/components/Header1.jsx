@@ -23,8 +23,9 @@ function Header1({
       <div
         className={styles.logo}
         data-element-id="logo"
-        style={{ flex: '0 0 auto', marginBottom: '0.5rem', ...(elements['logo']?.style || {}) }}
+        style={{ flex: '0 0 auto', marginBottom: '0.5rem' }}
       >
+      
         <EditableText
           tag="h1"
           text={title}
@@ -32,9 +33,9 @@ function Header1({
           className={styles.title}
           data-element-id="title"
            style={{
-    ...(elements['title']?.style || {}), // container styles
-    ...(elements['title']?.textStyle || {}) , color: elements['title']?.textStyle?.color || 'inherit',// text-specific styles
-          }}
+          ...(elements['title']?.style || {}), // container styles
+          ...(elements['title']?.textStyle || {}) , color: elements['title']?.textStyle?.color || 'inherit',// text-specific styles
+                }}
         />
       </div>
 

@@ -17,6 +17,22 @@ import Footer1 from "./Footer1";
 import footer1Css from "../styles/Footer1.module.css?raw";
 import footer1Source from "./Footer1.jsx?raw";
 
+import Card1 from "./Card1";
+import card1Css from "../styles/Card1.module.css?raw";
+import card1Source from "./Card1.jsx?raw";
+
+import Aside1 from "./Aside1";
+import aside1Css from "../styles/Aside1.module.css?raw";
+import aside1Source from "./Aside1.jsx?raw";
+
+import Section1 from "./Section1";
+import section1Css from "../styles/Section1.module.css?raw";
+import section1Source from "./Section1.jsx?raw";
+
+import About1 from "./About1";
+import about1Css from "../styles/About1.module.css?raw";
+import about1Source from "./About1.jsx?raw";
+
 /* ----------------
    Attach metadata
 ------------------ */
@@ -32,6 +48,18 @@ Hero.__files = { "styles/Hero.module.css": heroCss };
 Footer1.__sourceCode = footer1Source;
 Footer1.__files = { "styles/Footer1.module.css": footer1Css };
 
+Card1.__sourceCode = card1Source;
+Card1.__files = { "styles/Card1.module.css": card1Css };
+
+Aside1.__sourceCode = aside1Source;
+Aside1.__files = { "styles/Aside1.module.css": aside1Css };
+
+Section1.__sourceCode = section1Source;
+Section1.__files = { "styles/Section1.module.css": section1Css };
+
+About1.__sourceCode = about1Source;
+About1.__files = { "styles/About1.module.css": about1Css };
+
 /* ----------------
    Export Maps
 ------------------ */
@@ -40,6 +68,10 @@ export const componentMap = {
   header2: Header2,
   hero: Hero,
   footer1: Footer1,
+  card1: Card1,
+  aside1: Aside1,
+  section1: Section1,
+  about1: About1,
 };
 
 export const defaultPropsMap = {
@@ -49,8 +81,11 @@ export const defaultPropsMap = {
     ctaItems: [{ content: "Get Started" }],
     style: {},
     elements: {
+      title: {
+        style: {}, textStyle:{}
+      },
       logo: { style: {}, textStyle: {} },
-      title: { style: {}, textStyle: {} },
+
       nav: { style: {}, listStyle: {} },
       "navItem-0": { style: {}, textStyle: {} },
       "navItem-1": { style: {}, textStyle: {} },
@@ -66,26 +101,85 @@ export const defaultPropsMap = {
     elements: {},
   },
   hero: {
-    title: "Hero Title",
-    subtitle: "Hero Subtitle",
+    heading: "Hero Title",
+    subheading: "Hero Subtitle",
+    ctaText: "Get Started",
     style: {},
     elements: {
-      title: { textStyle: {} },
-      subtitle: { textStyle: {} },
+      heading: { textStyle: {} },
+      subheading: { textStyle: {} },
+      cta: { style: {}, textStyle: {} },
     },
   },
   footer1: {
-    text: "© 2025 My Company",
+    title: "Footer Title",
+    navItems: [{ content: "Home" }, { content: "Contact" }],
+    copyright: "© 2025 My Company",
     style: {},
     elements: {
-      text: { textStyle: {} },
+      title: { textStyle: {} },
+      navList: { style: {} },
+      "navItem-0": { style: {}, textStyle: {} },
+      "navItem-1": { style: {}, textStyle: {} },
+      copyright: { textStyle: {} },
+    },
+  },
+  card1: {
+    imageSrc: "https://via.placeholder.com/300",
+    heading: "Card Heading",
+    text: "Card description text goes here.",
+    style: {},
+    elements: {
+      "card-image": { style: {} },
+      "card-heading": { style: {}, textStyle: {} },
+      "card-text": { style: {}, textStyle: {} },
+    },
+  },
+  aside1: {
+    title: "Aside Title",
+    items: [{ content: "Item 1" }, { content: "Item 2" }],
+    style: {},
+    elements: {
+      title: { style: {}, textStyle: {} },
+      list: { style: {} },
+      "item-0": { style: {}, textStyle: {} },
+      "item-1": { style: {}, textStyle: {} },
+    },
+  },
+  section1: {
+    heading: "Section Heading",
+    text: "Section description goes here.",
+    style: {},
+    elements: {
+      heading: { style: {}, textStyle: {} },
+      text: { style: {}, textStyle: {} },
+      childrenWrapper: { style: {} },
+    },
+  },
+  about1: {
+    heading: "About Us",
+    text: "Information about the company goes here.",
+    imageSrc: "https://via.placeholder.com/200",
+    style: {},
+    elements: {
+      image: { style: {} },
+      heading: { style: {}, textStyle: {} },
+      text: { style: {}, textStyle: {} },
+      childrenWrapper: { style: {} },
     },
   },
 };
 
+/* ----------------
+   Components Array
+------------------ */
 export const components = [
   { id: "header1", name: "Header Style 1" },
   { id: "header2", name: "Header Style 2" },
   { id: "hero", name: "Hero Section" },
   { id: "footer1", name: "Footer" },
+  { id: "card1", name: "Card Component" },
+  { id: "aside1", name: "Aside Component" },
+  { id: "section1", name: "Section Component" },
+  { id: "about1", name: "About Section" },
 ];

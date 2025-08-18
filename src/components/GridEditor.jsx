@@ -8,7 +8,7 @@ import { useDrag, useDrop } from "react-dnd";
 import StyleEditor from "../components2/StyleEditor";
 
 const ItemTypes = { COMPONENT: "component" };
-const VIRTUAL_GRID_WIDTH = window.innerWidth; // full screen width
+const VIRTUAL_GRID_WIDTH = window.innerWidth;
 
 function SidebarItem({ compId }) {
   const [, drag] = useDrag(() => ({
@@ -41,10 +41,8 @@ function elementsArrayToObj(elementsArr = [], prevObj = {}) {
 
 export default function GridEditor({ gridItems, setGridItems }) {
   const { setUserThemeConfig } = useUserTheme();
-
   const [selectedTarget, setSelectedTarget] = useState(null);
   const dropRef = useRef(null);
-
   const [history, setHistory] = useState([]);
   const [future, setFuture] = useState([]);
 
@@ -75,6 +73,10 @@ export default function GridEditor({ gridItems, setGridItems }) {
       header2: { width: 1000, height: 150 },
       hero: { width: 1000, height: 400 },
       footer1: { width: 1000, height: 100 },
+      card1: { width: 300, height: 400 },
+      aside1: { width: 250, height: 400 },
+      section1: { width: 1000, height: 300 },
+      about1: { width: 600, height: 400 },
     };
     return sizeMap[type] || { width: 300, height: 100 };
   };
@@ -144,13 +146,7 @@ export default function GridEditor({ gridItems, setGridItems }) {
     setGridItems((prev) =>
       prev.map((item) =>
         item.id === id
-          ? {
-              ...item,
-              position: {
-                x: (x / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH,
-                y,
-              },
-            }
+          ? { ...item, position: { x: (x / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH, y } }
           : item
       )
     );
@@ -163,14 +159,8 @@ export default function GridEditor({ gridItems, setGridItems }) {
         item.id === id
           ? {
               ...item,
-              size: {
-                width: (width / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH,
-                height,
-              },
-              position: {
-                x: (position.x / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH,
-                y: position.y,
-              },
+              size: { width: (width / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH, height },
+              position: { x: (position.x / dropRef.current.clientWidth) * VIRTUAL_GRID_WIDTH, y: position.y },
             }
           : item
       )
@@ -201,10 +191,7 @@ export default function GridEditor({ gridItems, setGridItems }) {
           const updated = nextBlocks.find((b) => b.id === gi.id);
           if (!updated) return gi;
           const nextStyle = updated.style || {};
-          const nextElementsObj = elementsArrayToObj(
-            updated.elements || [],
-            gi.props?.elements || {}
-          );
+          const nextElementsObj = elementsArrayToObj(updated.elements || [], gi.props?.elements || {});
           const nextProps = { ...(gi.props || {}), style: nextStyle, elements: nextElementsObj };
           return { ...gi, props: nextProps };
         })
@@ -213,50 +200,53 @@ export default function GridEditor({ gridItems, setGridItems }) {
     [gridItems]
   );
 
-  const handleCanvasClick = useCallback(
-    (e, itemId) => {
-      e.stopPropagation();
-      const el = e.target.closest("[data-element-id]");
-      const elementId = el?.getAttribute("data-element-id");
-      if (elementId && elementId !== "header") {
-        setSelectedTarget({ blockId: itemId, type: "element", elementId });
-      } else {
-        setSelectedTarget({ blockId: itemId, type: "block" });
-      }
-    },
-    []
-  );
+  // New: handlers for editable fields
+  const handleChange = (blockId, key) => (value) => {
+    pushHistory([...gridItems]);
+    setGridItems((prev) =>
+      prev.map((item) =>
+        item.id === blockId ? { ...item, props: { ...item.props, [key]: value } } : item
+      )
+    );
+  };
+
+  const handleCanvasClick = useCallback((e, itemId) => {
+    e.stopPropagation();
+    const el = e.target.closest("[data-element-id]");
+    const elementId = el?.getAttribute("data-element-id");
+    if (elementId && elementId !== "header") {
+      setSelectedTarget({ blockId: itemId, type: "element", elementId });
+    } else {
+      setSelectedTarget({ blockId: itemId, type: "block" });
+    }
+  }, []);
 
   // Keyboard shortcuts
   useEffect(() => {
-  const handleKeyDown = (e) => {
-    const tag = e.target.tagName.toLowerCase();
-    const isEditable = e.target.isContentEditable || tag === "input" || tag === "textarea";
-    if (isEditable) return; // ignore typing inside editable fields
+    const handleKeyDown = (e) => {
+      const tag = e.target.tagName.toLowerCase();
+      const isEditable = e.target.isContentEditable || tag === "input" || tag === "textarea";
+      if (isEditable) return;
 
-    if ((e.ctrlKey || e.metaKey) && e.key === "z") {
-      undo();
-    } else if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.shiftKey && e.key === "Z"))) {
-      redo();
-    } else if (e.key === "Delete" || e.key === "Backspace") {
-      if (selectedTarget?.blockId) deleteComponent(selectedTarget.blockId);
-    }
-  };
+      if ((e.ctrlKey || e.metaKey) && e.key === "z") undo();
+      else if ((e.ctrlKey || e.metaKey) && (e.key === "y" || (e.shiftKey && e.key === "Z"))) redo();
+      else if (e.key === "Delete" || e.key === "Backspace") {
+        if (selectedTarget?.blockId) deleteComponent(selectedTarget.blockId);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedTarget, history, future, gridItems]);
 
-  window.addEventListener("keydown", handleKeyDown);
-  return () => window.removeEventListener("keydown", handleKeyDown);
-}, [selectedTarget, history, future, gridItems]);
+  const [gridHeight, setGridHeight] = useState(0);
 
-const [gridHeight, setGridHeight] = useState(0);
-
-useEffect(() => {
-  // Calculate max bottom edge of all items
-  const maxHeight = gridItems.reduce((max, item) => {
-    const bottom = item.position.y + item.size.height;
-    return bottom > max ? bottom : max;
-  }, 0);
-  setGridHeight(maxHeight + 20); // add some padding
-}, [gridItems]);
+  useEffect(() => {
+    const maxHeight = gridItems.reduce((max, item) => {
+      const bottom = item.position.y + item.size.height;
+      return bottom > max ? bottom : max;
+    }, 0);
+    setGridHeight(maxHeight + 20);
+  }, [gridItems]);
 
   return (
     <div className="theme-container">
@@ -267,32 +257,24 @@ useEffect(() => {
             <SidebarItem key={compId} compId={compId} />
           ))}
           <p style={{ fontSize: 12, color: "#666", marginTop: 12 }}>
-            Tip: drag a component into the canvas. Click inside a component to
-            select the whole block, or click a labeled inner part (logo/nav/cta)
-            to edit that element’s styles.
+            Tip: drag a component into the canvas. Click inside a component to select the whole block, or click a labeled inner part to edit.
           </p>
           <div style={{ marginTop: 20, display: "flex", gap: 8 }}>
             <button onClick={undo} disabled={!history.length}>Undo</button>
             <button onClick={redo} disabled={!future.length}>Redo</button>
             <button
-            onClick={() => selectedTarget && deleteComponent(selectedTarget.blockId)}
-            disabled={!selectedTarget}
-            className="delete-btn"
-          >
-            Delete
-          </button>
-
+              onClick={() => selectedTarget && deleteComponent(selectedTarget.blockId)}
+              disabled={!selectedTarget}
+            >
+              Delete
+            </button>
           </div>
         </aside>
 
         <div
-          ref={(node) => {
-            drop(node);
-            dropRef.current = node;
-          }}
+          ref={(node) => { drop(node); dropRef.current = node; }}
           className="grid-area"
-  style={{ height: gridHeight }}
-
+          style={{ height: gridHeight }}
         >
           {gridItems.map((item) => {
             const Comp = componentMap[item.type];
@@ -301,35 +283,32 @@ useEffect(() => {
             const isSelectedBlock = selectedTarget?.blockId === item.id && selectedTarget?.type === "block";
             const isSelectedElement = selectedTarget?.blockId === item.id && selectedTarget?.type === "element";
 
-            // scale items for editor display
             const scale = dropRef.current ? dropRef.current.clientWidth / VIRTUAL_GRID_WIDTH : 1;
+
+            // Inject handlers for editable fields
+            const propsWithHandlers = {
+              ...item.props,
+              onHeadingChange: handleChange(item.id, "heading"),
+              onTextChange: handleChange(item.id, "text"),
+              onImageChange: handleChange(item.id, "imageSrc"),
+            };
 
             return (
               <Rnd
                 key={item.id}
-                size={{
-                  width: item.size.width * scale,
-                  height: item.size.height,
-                }}
-                position={{
-                  x: item.position.x * scale,
-                  y: item.position.y,
-                }}
+                size={{ width: item.size.width * scale, height: item.size.height }}
+                position={{ x: item.position.x * scale, y: item.position.y }}
                 onDragStop={(e, d) => updatePosition(item.id, d.x, d.y)}
-                onResizeStop={(e, dir, ref, delta, position) =>
-                  updateSize(item.id, ref.offsetWidth, ref.offsetHeight, position)
-                }
+                onResizeStop={(e, dir, ref, delta, position) => updateSize(item.id, ref.offsetWidth, ref.offsetHeight, position)}
                 bounds="parent"
                 minWidth={50}
                 minHeight={50}
                 className="grid-item"
-                style={{
-                  border: isSelectedBlock || isSelectedElement ? "2px solid #1976d2" : undefined,
-                }}
+                style={{ border: isSelectedBlock || isSelectedElement ? "2px solid #1976d2" : undefined }}
                 onClick={(e) => handleCanvasClick(e, item.id)}
               >
                 <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column" }}>
-                  <Comp {...item.props} style={{ ...(item.props?.style || {}), width: "100%", height: "100%" }} />
+                  <Comp {...propsWithHandlers} style={{ ...(item.props?.style || {}), width: "100%", height: "100%" }} />
                 </div>
               </Rnd>
             );
