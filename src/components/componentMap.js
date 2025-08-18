@@ -85,7 +85,7 @@ export const defaultPropsMap = {
         style: {}, textStyle:{}
       },
       logo: { style: {}, textStyle: {} },
-
+    
       nav: { style: {}, listStyle: {} },
       "navItem-0": { style: {}, textStyle: {} },
       "navItem-1": { style: {}, textStyle: {} },
@@ -102,13 +102,16 @@ export const defaultPropsMap = {
   },
   hero: {
     heading: "Hero Title",
+    
     subheading: "Hero Subtitle",
     ctaText: "Get Started",
+    backgroundImage: "https://images.unsplash.com/photo-1670584646629-e6d830beebaf?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     style: {},
     elements: {
       heading: { textStyle: {} },
       subheading: { textStyle: {} },
       cta: { style: {}, textStyle: {} },
+      backgroundImage: { style: {} },
     },
   },
   footer1: {

@@ -1,7 +1,6 @@
-import React from 'react';
-import PropTypes from 'prop-types';
-import EditableText from './EditableText';
-import styles from '../styles/Hero.module.css';
+import EditableText from "./EditableText";
+import EditableImage, { EditableBackground } from "./EditableElement"; 
+import styles from "../styles/Hero.module.css";
 
 function Hero({
   heading,
@@ -11,6 +10,7 @@ function Hero({
   ctaText,
   onCtaChange,
   backgroundImage,
+  onBackgroundChange,
   style = {},
   elements = {},
 }) {
@@ -18,20 +18,31 @@ function Hero({
     <section
       className={styles.hero}
       style={{
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
-        ...(style || {}),
-        ...(elements['hero']?.style || {}),
+        ...style,
+        ...(elements["hero"]?.style || {}),
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        position: "relative", 
       }}
       data-element-id="hero"
     >
+      {/* Background Image uploader */}
+      <EditableBackground
+        src={backgroundImage}
+        onChange={onBackgroundChange}   // 🔹 updates the hero's background
+        style={{ position: "absolute", top: 0, right: 0, padding: 8, zIndex: 10 }}
+        labelText="Change Background"
+      />
+
       {/* Heading */}
       <EditableText
         tag="h1"
         text={heading}
         onChange={onHeadingChange}
         className={styles.heading}
+        style={{ ...(elements["heading"]?.style || {}), ...(elements["heading"]?.textStyle || {}), position: 'relative', zIndex: 20 }}
         data-element-id="hero-heading"
-        style={{ ...(elements['heading']?.style || {}), ...(elements['heading']?.textStyle || {}) }}
       />
 
       {/* Subheading */}
@@ -40,8 +51,8 @@ function Hero({
         text={subheading}
         onChange={onSubheadingChange}
         className={styles.subheading}
+        style={{ ...(elements["subheading"]?.style || {}), ...(elements["subheading"]?.textStyle || {}), position: 'relative', zIndex: 20 }}
         data-element-id="hero-subheading"
-        style={{ ...(elements['subheading']?.style || {}), ...(elements['subheading']?.textStyle || {}) }}
       />
 
       {/* CTA Button */}
@@ -49,30 +60,18 @@ function Hero({
         <button
           className={styles.ctaButton}
           data-element-id="hero-cta"
-          style={{ ...(elements['cta']?.style || {}) }}
+          style={{ ...(elements["cta"]?.style || {}), position: 'relative', zIndex: 20 }}
         >
           <EditableText
             tag="span"
             text={ctaText}
             onChange={onCtaChange}
-            style={{ ...(elements['cta']?.textStyle || {}) }}
+            style={{ ...(elements["cta"]?.textStyle || {}), position: 'relative', zIndex: 20 }}
           />
         </button>
       )}
     </section>
   );
 }
-
-Hero.propTypes = {
-  heading: PropTypes.string,
-  onHeadingChange: PropTypes.func,
-  subheading: PropTypes.string,
-  onSubheadingChange: PropTypes.func,
-  ctaText: PropTypes.string,
-  onCtaChange: PropTypes.func,
-  backgroundImage: PropTypes.string,
-  style: PropTypes.object,
-  elements: PropTypes.object,
-};
 
 export default Hero;

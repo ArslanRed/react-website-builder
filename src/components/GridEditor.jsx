@@ -288,9 +288,11 @@ export default function GridEditor({ gridItems, setGridItems }) {
             // Inject handlers for editable fields
             const propsWithHandlers = {
               ...item.props,
+              backgroundImage: item.props?.backgroundImage || "",
               onHeadingChange: handleChange(item.id, "heading"),
               onTextChange: handleChange(item.id, "text"),
               onImageChange: handleChange(item.id, "imageSrc"),
+              onBackgroundChange: handleChange(item.id, "backgroundImage"),
             };
 
             return (
