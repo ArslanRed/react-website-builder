@@ -115,7 +115,7 @@ export const defaultPropsMap = {
       hero: { style: {} },
       "hero-heading": { style: {}, textStyle: {} },
       "hero-subheading": { style: {}, textStyle: {} },
-      "hero-cta": { style: {} },
+      "hero-cta": { style: {}, textStyle:{} },
       "hero-cta-text": { style: {}, textStyle: {} },
       "hero-background": { style: {} },
     },

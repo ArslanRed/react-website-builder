@@ -81,7 +81,8 @@ function Hero({
           className={styles.ctaButton}
           data-element-id="hero-cta"
           style={{
-            ...(elements['hero-cta']?.style || {}), // button container
+             ...(elements["hero-cta"]?.style || {}),     // ✅ whole button styled
+      ...(elements["hero-cta"]?.textStyle || {}), // button container
             position: 'relative',
             zIndex: 20,
           }}
@@ -91,8 +92,7 @@ function Hero({
             text={ctaText}
             onChange={onCtaChange}
             style={{
-              ...(elements['hero-cta-text']?.style || {}),     // wrapper span styles
-              ...(elements['hero-cta-text']?.textStyle || {}), // text styles
+               // text styles
               position: 'relative',
               zIndex: 20,
             }}

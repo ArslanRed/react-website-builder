@@ -4,28 +4,29 @@
   align-items: center;
   padding: 1rem 2rem;
   background-color: #1e293b; /* dark slate blue */
-  
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-  border-radius: 0 0 16px 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+  border-radius: 4pxs;
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  transition: background 0.3s;
+  transition: background 0.3s, box-shadow 0.3s;
 }
 
 .header:hover {
-  background-color: #0f172a; /* slightly darker on hover */
+  background-color: #0f172a; /* slightly darker */
+  box-shadow: 0 8px 25px rgba(100, 95, 95, 0.979);
 }
 
 .title {
   cursor: pointer;
-  font-size: 1.9rem;
+  font-size: 2rem;
   font-weight: 700;
   letter-spacing: 1px;
   color: #f8fafc;
-  transition: color 0.3s;
+  transition: color 0.3s, transform 0.3s;
 }
 
 .title:hover {
-  color: #fbbf24; /* soft golden highlight on hover */
+ 
+  transform: scale(1.05);
 }
 
 .navList {
@@ -37,32 +38,57 @@
 }
 
 .navList a {
- 
   font-weight: 500;
   text-decoration: none;
   padding: 0.5rem 0.8rem;
-  border-radius: 8px;
-  transition: all 0.3s;
+  border-radius: 10px;
+  color: #e2e8f0; /* light text */
+  transition: all 0.3s ease;
+  position: relative;
 }
 
-.navList a:hover {
-  background-color: #334155; /* subtle highlight */
-  color: #fbbf24; /* golden hover color */
+
+
+.navList a:hover::after {
+  width: 100%;
 }
 
 .ctaButton {
-  background-color: #334155; /* gradient CTA */
-  color: #1e293b;
+  background: #334155;
+  color: #f8fafc;
   font-weight: 600;
   padding: 0.45rem 1rem;
   border-radius: 12px;
   text-decoration: none;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: all 0.3s ease, transform 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.ctaButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(120deg, #535352, #fde68a);
+  transition: all 0.4s ease;
+  z-index: 0;
+}
+
+.ctaButton:hover::before {
+  left: 0;
+}
+
+.ctaButton span {
+  position: relative;
+  z-index: 1;
 }
 
 .ctaButton:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
-  background: linear-gradient(90deg, #fbbf24, #fde68a); /* lighter gradient on hover */
+  box-shadow: 0 6px 15px rgba(0,0,0,0.25);
+  color: #1e293b;
 }

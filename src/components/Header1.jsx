@@ -95,7 +95,7 @@ function Header1({
         style={{
           display: 'inline-block',
           // FIXED: Use style for container styling
-          ...(elements['cta']?.style || {})
+          ...(elements['cta']?.style || {}),  ...(elements['cta']?.textStyle || {})
         }}
       >
         <EditableText
@@ -104,7 +104,7 @@ function Header1({
           onChange={(val) => onCtaChange(0, val)}
           style={{
             // FIXED: Use textStyle for text styling
-            ...(elements['cta']?.textStyle || {})
+           
           }}
         />
       </div>

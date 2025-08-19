@@ -255,10 +255,13 @@
   padding: 1rem;
   box-sizing: border-box;
   overflow-y: auto;
-  background-color: #b2aab6;
+  background-color: #aaaaaa;
   text-align: center;
   flex-shrink: 0;
   font-family: system-ui, sans-serif;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
 }
 
 /* Common sidebar buttons */
@@ -311,13 +314,13 @@
   border-radius: 6px;
   cursor: grab;
   user-select: none;
-  background-color: #fff;
+  background-color: #f0f0f0;
   transition: all 0.2s;
 }
 .sidebar-item:hover {
   border-color: #1976d2;
   background-color: #e8e8e8;
-  transform: translateY(-2px);
+  transform: translateY(-2px) scale(1.1);
 }
 
 /* Canvas / editor area */
@@ -350,84 +353,132 @@
 
 /* Style editor container */
 .style-editor {
-  padding: 20px;
-  height: 100%; 
+  padding: 18px;
+  height: 100%;
   overflow-y: auto;
-  font-family: system-ui, sans-serif;
-  background-color: #b2aab6;
+  font-family: "Inter", system-ui, sans-serif;
+   background-color: #aaaaaa;
   border-left: 2px solid #000000;
-  color: black;
+  color: #111827;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
-  text-align: left;
-  gap: 12px;
+  align-items: center;
+  text-align: center; 
+  gap: 8px;
+  animation: fadeIn 0.4s ease;
+  width: 220px;
 }
-
-/* Header */
-.style-editor h3 {
-  margin-bottom: 20px;
-  font-size: 18px;
-  font-weight: 700;
-  border-bottom: 1px solid #ddd;
-  padding-bottom: 10px;
-  text-align: center;
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
-
-/* Style input wrapper */
+/* Section Wrapper */
 .style-input {
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  
   margin-bottom: 14px;
+   transition: transform 0.2s ease;
 }
-
-/* Label */
+.style-input:hover {
+  transform: translateY(-2px) scale(1.1);
+}
+/* Labels */
 .style-input label {
-  margin-bottom: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #000000;
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: #020202;
+  letter-spacing: 0.5px;
 }
 
-/* Input field */
-.style-input input {
-  padding: 10px 12px;
-  font-size: 14px;
-  border-radius: 8px;
-  border: 1px solid #ccc;
-  background: #fff;
+/* Inputs & Selects */
+.style-input input,
+.style-input select {
+  padding: 8px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+  border: 1px solid #999797;
+  background: #e5e6e7;
+  color: #020202;
+  transition: border 0.2s, background 0.2s;
+}
+
+.style-input input:focus,
+.style-input select:focus {
+  border-color: #3b82f6;
+  background: #b6bdcc;
   outline: none;
-  transition: all 0.2s ease-in-out;
-}
-.style-input input:focus {
-  border: 1px solid #1976d2;
-  box-shadow: 0 0 4px rgba(25, 118, 210, 0.4);
 }
 
-/* Checkbox wrapper */
+/* Dropdown Options */
+.style-input select option {
+  background: #111827;
+  color: #f3f4f6;
+}
+
+/* Color Picker */
+.style-input input[type="color"] {
+  width: 40px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* Toggle Buttons (Bold / Italic) */
+.text-style-options {
+  display: flex;
+  gap: 6px;
+}
+
+.text-style-options button {
+  flex: 1;
+  padding: 6px 0;
+  border-radius: 6px;
+  border: 1px solid #374151;
+  background: #1f2937;
+  color: #d1d5db;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.text-style-options button:hover {
+  background: #374151;
+}
+
+.text-style-options button.active {
+  background: #3b82f6;
+  border-color: #2563eb;
+  color: #fff;
+}
+
+/* Checkbox (minimal toggle style) */
 .style-checkbox {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 12px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 13px;
+  color: #d1d5db;
   cursor: pointer;
-  color: #000000;
-  font-weight: 500;
 }
 
-/* Bold & Italic options on same line */
-.text-style-options {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-/* Checkbox input */
 .style-checkbox input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1px solid #6b7280;
+  background: #1f2937;
   cursor: pointer;
-  accent-color: #1976d2;
+  transition: all 0.2s ease;
+}
+
+.style-checkbox input[type="checkbox"]:checked {
+  background: #3b82f6;
+  border-color: #2563eb;
 }
