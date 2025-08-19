@@ -1,6 +1,8 @@
-import EditableText from "./EditableText";
-import EditableImage, { EditableBackground } from "./EditableElement"; 
-import styles from "../styles/Hero.module.css";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { EditableBackground } from './EditableElement';
+import EditableText from './EditableText';
+import styles from '../styles/Hero.module.css';
 
 function Hero({
   heading,
@@ -19,20 +21,28 @@ function Hero({
       className={styles.hero}
       style={{
         ...style,
-        ...(elements["hero"]?.style || {}),
-        backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        position: "relative", 
+        ...(elements['hero']?.style || {}), // container
+        backgroundImage: backgroundImage ? `url(${backgroundImage})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        position: 'relative',
       }}
       data-element-id="hero"
     >
       {/* Background Image uploader */}
       <EditableBackground
         src={backgroundImage}
-        onChange={onBackgroundChange}   // 🔹 updates the hero's background
-        style={{ position: "absolute", top: 0, right: 0, padding: 8, zIndex: 10 }}
+        onChange={onBackgroundChange}
+        style={{
+          position: 'absolute',
+          top: 0,
+          right: 0,
+          padding: 8,
+          zIndex: 10,
+          ...(elements['hero-background']?.style || {}),
+        }}
         labelText="Change Background"
+        data-element-id="hero-background"
       />
 
       {/* Heading */}
@@ -41,7 +51,12 @@ function Hero({
         text={heading}
         onChange={onHeadingChange}
         className={styles.heading}
-        style={{ ...(elements["heading"]?.style || {}), ...(elements["heading"]?.textStyle || {}), position: 'relative', zIndex: 20 }}
+        style={{
+          ...(elements['hero-heading']?.style || {}),
+          ...(elements['hero-heading']?.textStyle || {}),
+          position: 'relative',
+          zIndex: 20,
+        }}
         data-element-id="hero-heading"
       />
 
@@ -51,7 +66,12 @@ function Hero({
         text={subheading}
         onChange={onSubheadingChange}
         className={styles.subheading}
-        style={{ ...(elements["subheading"]?.style || {}), ...(elements["subheading"]?.textStyle || {}), position: 'relative', zIndex: 20 }}
+        style={{
+          ...(elements['hero-subheading']?.style || {}),
+          ...(elements['hero-subheading']?.textStyle || {}),
+          position: 'relative',
+          zIndex: 20,
+        }}
         data-element-id="hero-subheading"
       />
 
@@ -60,18 +80,50 @@ function Hero({
         <button
           className={styles.ctaButton}
           data-element-id="hero-cta"
-          style={{ ...(elements["cta"]?.style || {}), position: 'relative', zIndex: 20 }}
+          style={{
+            ...(elements['hero-cta']?.style || {}), // button container
+            position: 'relative',
+            zIndex: 20,
+          }}
         >
           <EditableText
             tag="span"
             text={ctaText}
             onChange={onCtaChange}
-            style={{ ...(elements["cta"]?.textStyle || {}), position: 'relative', zIndex: 20 }}
+            style={{
+              ...(elements['hero-cta-text']?.style || {}),     // wrapper span styles
+              ...(elements['hero-cta-text']?.textStyle || {}), // text styles
+              position: 'relative',
+              zIndex: 20,
+            }}
+            data-element-id="hero-cta-text"
           />
         </button>
       )}
     </section>
   );
 }
+
+Hero.propTypes = {
+  heading: PropTypes.string,
+  onHeadingChange: PropTypes.func,
+  subheading: PropTypes.string,
+  onSubheadingChange: PropTypes.func,
+  ctaText: PropTypes.string,
+  onCtaChange: PropTypes.func,
+  backgroundImage: PropTypes.string,
+  onBackgroundChange: PropTypes.func,
+  style: PropTypes.object,
+  elements: PropTypes.object,
+};
+
+Hero.defaultProps = {
+  heading: 'Hero Title',
+  subheading: 'Hero Subtitle',
+  ctaText: 'Get Started',
+  backgroundImage: '',
+  style: {},
+  elements: {},
+};
 
 export default Hero;

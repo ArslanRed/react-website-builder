@@ -1,12 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import EditableText from './EditableText';
-import EditableImage from './EditableElement'; // ✅ default export is EditableImage
+import EditableImage from './EditableElement';
 import styles from '../styles/Card1.module.css';
 
 function Card1({
   imageSrc,
-  onImageChange, // <- required for EditableImage
+  onImageChange,
   heading,
   onHeadingChange,
   text,
@@ -17,42 +17,39 @@ function Card1({
   return (
     <div
       className={styles.card}
-      style={{ ...(style || {}) }}
+      style={{ ...(style || {}), ...(elements['card']?.style || {}) }}
       data-element-id="card"
     >
-      {/* Editable Image */}
       <EditableImage
         src={imageSrc}
         onChange={onImageChange}
-        className={styles.imageWrapper} // wrapper div styling
-        imgClassName={styles.image}    // inner img styling
-        style={{ ...(elements['card-image']?.style || {}) }}
-        data-element-id="card-image"
+        className={styles.imageWrapper}
+        imgClassName={styles.image}
+        style={{ ...(elements['image']?.style || {}) }}
+        data-element-id="image"
       />
 
-      {/* Editable Heading */}
       <EditableText
         tag="h2"
         text={heading}
         onChange={onHeadingChange}
         className={styles.heading}
-        data-element-id="card-heading"
+        data-element-id="heading"
         style={{
-          ...(elements['card-heading']?.style || {}),
-          ...(elements['card-heading']?.textStyle || {}),
+          ...(elements['heading']?.style || {}),
+          ...(elements['heading']?.textStyle || {}),
         }}
       />
 
-      {/* Editable Paragraph */}
       <EditableText
         tag="p"
         text={text}
         onChange={onTextChange}
         className={styles.text}
-        data-element-id="card-text"
+        data-element-id="text"
         style={{
-          ...(elements['card-text']?.style || {}),
-          ...(elements['card-text']?.textStyle || {}),
+          ...(elements['text']?.style || {}),
+          ...(elements['text']?.textStyle || {}),
         }}
       />
     </div>

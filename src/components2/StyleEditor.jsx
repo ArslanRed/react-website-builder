@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-
+import {defaultPropsMap} from '../components/componentMap'
 export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
   const [styleValues, setStyleValues] = useState({});
   const [isItemStyle, setIsItemStyle] = useState(false);
@@ -20,16 +20,19 @@ export default function StyleEditor({ selectedTarget, blocks, updateBlocks }) {
     
     return {};
   }
-
+const styleableItems = Object.values(defaultPropsMap).flatMap(block => {
+  return Object.entries(block.elements || {})
+    .filter(([_, elConfig]) => elConfig.textStyle !== undefined) // items with textStyle
+    .map(([elementId, _]) => elementId.toLowerCase());
+});
   // Define which elements are styleable items (not containers)
   function isStyleableItem(elementId) {
     if (!elementId) return false;
     
     // Define styleable text/content elements (case-insensitive)
-    const styleableItems = [
-      'title', 'heading', 'subheading', 'text', 'content', 'description',
-      'cta', 'copyright', 'subtitle', 'paragraph', 'caption'
-    ];
+    // Generate styleable items dynamically from defaultPropsMap
+
+
     
     const lowerElementId = elementId.toLowerCase();
     

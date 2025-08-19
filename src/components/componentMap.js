@@ -81,19 +81,17 @@ export const defaultPropsMap = {
     ctaItems: [{ content: "Get Started" }],
     style: {},
     elements: {
-      // Main container (structural - uses style)
-      header: { style: {}, textStyle: {} },
-      
-      // Text elements (use textStyle for text styling)
+      // Containers
+      header: { style: {} },
+      nav: { style: {} },
+      navList: { style: {} },
+      logo: { style: {} },
+
+      // Text / items
       title: { style: {}, textStyle: {} },
       "navItem-0": { style: {}, textStyle: {} },
-      "navItem-1": { style: {}, textStyle: {} }, 
-      cta: { style: {}, textStyle: {} }, // CTA button text
-      
-      // Structural containers (use style only)
-      nav: { style: {}, textStyle: {} },
-      navList: { style: {}, textStyle: {} },
-      logo: { style: {}, textStyle: {} },
+      "navItem-1": { style: {}, textStyle: {} },
+      cta: { style: {}, textStyle: {} },
     },
   },
   header2: {
@@ -102,25 +100,24 @@ export const defaultPropsMap = {
     ctaItems: [],
     style: {},
     elements: {
-      header: { style: {}, textStyle: {} },
+      header: { style: {} },
+      nav: { style: {} },
       title: { style: {}, textStyle: {} },
-      nav: { style: {}, textStyle: {} },
     },
   },
   hero: {
     heading: "Hero Title",
-    subheading: "Hero Subtitle", 
+    subheading: "Hero Subtitle",
     ctaText: "Get Started",
-    backgroundImage: "https://images.unsplash.com/photo-1670584646629-e6d830beebaf?q=80&w=870&auto=format&fit=crop&ixlib=rb-4.0.1&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    backgroundImage: "",
     style: {},
     elements: {
-      // Text elements
-      heading: { style: {}, textStyle: {} },
-      subheading: { style: {}, textStyle: {} },
-      cta: { style: {}, textStyle: {} }, // CTA button text
-      
-      // Visual/structural elements
-      backgroundImage: { style: {}, textStyle: {} },
+      hero: { style: {} },
+      "hero-heading": { style: {}, textStyle: {} },
+      "hero-subheading": { style: {}, textStyle: {} },
+      "hero-cta": { style: {} },
+      "hero-cta-text": { style: {}, textStyle: {} },
+      "hero-background": { style: {} },
     },
   },
   footer1: {
@@ -129,34 +126,25 @@ export const defaultPropsMap = {
     copyright: "© 2025 My Company",
     style: {},
     elements: {
-      // Main container
-      footer: { style: {}, textStyle: {} },
-      
-      // Text elements
+      footer: { style: {} },
+      navList: { style: {} },
+
       title: { style: {}, textStyle: {} },
       copyright: { style: {}, textStyle: {} },
       "navItem-0": { style: {}, textStyle: {} },
       "navItem-1": { style: {}, textStyle: {} },
-      
-      // Structural elements
-      navList: { style: {}, textStyle: {} },
     },
   },
   card1: {
     imageSrc: "https://via.placeholder.com/300",
-    heading: "Card Heading", 
+    heading: "Card Heading",
     text: "Card description text goes here.",
     style: {},
     elements: {
-      // Main container
-      card: { style: {}, textStyle: {} },
-      
-      // Text elements  
-      heading: { style: {}, textStyle: {} }, // Use "heading" to match component
-      text: { style: {}, textStyle: {} },     // Use "text" to match component
-      
-      // Visual elements
-      image: { style: {}, textStyle: {} }, // Use "image" to match component
+      card: { style: {} },
+      heading: { style: {}, textStyle: {} },
+      text: { style: {}, textStyle: {} },
+      image: { style: {} },
     },
   },
   aside1: {
@@ -164,16 +152,12 @@ export const defaultPropsMap = {
     items: [{ content: "Item 1" }, { content: "Item 2" }],
     style: {},
     elements: {
-      // Main container
-      aside: { style: {}, textStyle: {} },
-      
-      // Text elements - FIXED: Match component element IDs
-      title: { style: {}, textStyle: {} },        // Main aside title
-      "item-0": { style: {}, textStyle: {} },     // List items  
+      aside: { style: {} },
+      list: { style: {} },
+
+      title: { style: {}, textStyle: {} },
+      "item-0": { style: {}, textStyle: {} },
       "item-1": { style: {}, textStyle: {} },
-      
-      // Structural elements
-      list: { style: {}, textStyle: {} },         // List container
     },
   },
   section1: {
@@ -181,15 +165,11 @@ export const defaultPropsMap = {
     text: "Section description goes here.",
     style: {},
     elements: {
-      // Main container
-      section: { style: {}, textStyle: {} },
-      
-      // Text elements
+      section: { style: {} },
+      childrenWrapper: { style: {} },
+
       heading: { style: {}, textStyle: {} },
       text: { style: {}, textStyle: {} },
-      
-      // Structural elements
-      childrenWrapper: { style: {}, textStyle: {} },
     },
   },
   about1: {
@@ -198,16 +178,12 @@ export const defaultPropsMap = {
     imageSrc: "https://via.placeholder.com/200",
     style: {},
     elements: {
-      // Main container
-      about1: { style: {}, textStyle: {} },
-      
-      // Text elements
+      about1: { style: {} },
+      childrenWrapper: { style: {} },
+      image: { style: {} },
+
       heading: { style: {}, textStyle: {} },
       text: { style: {}, textStyle: {} },
-      
-      // Visual/structural elements
-      image: { style: {}, textStyle: {} },
-      childrenWrapper: { style: {}, textStyle: {} },
     },
   },
 };

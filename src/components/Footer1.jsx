@@ -19,21 +19,22 @@ function Footer1({
       style={{ ...(style || {}), ...(elements['footer']?.style || {}) }}
       data-element-id="footer"
     >
-      {/* Footer Title / Logo */}
       <EditableText
         tag="h3"
         text={title}
         onChange={onTitleChange}
         className={styles.title}
-        data-element-id="footer-title"
-        style={{ ...(elements['title']?.style || {}), ...(elements['title']?.textStyle || {}) }}
+        data-element-id="title"
+        style={{
+          ...(elements['title']?.style || {}),
+          ...(elements['title']?.textStyle || {}),
+        }}
       />
 
-      {/* Footer Navigation */}
       {navItems.length > 0 && (
         <ul
           className={styles.navList}
-          data-element-id="footer-nav"
+          data-element-id="navList"
           style={{ ...(elements['navList']?.style || {}) }}
         >
           {navItems.map((item, index) => (
@@ -41,29 +42,34 @@ function Footer1({
               key={item.id || index}
               className={styles.navItem}
               style={{ ...(elements[`navItem-${index}`]?.style || {}) }}
-              data-element-id={`footer-navItem-${index}`}
+              data-element-id={`navItem-${index}`}
             >
               <EditableText
                 tag="a"
                 text={item.content}
                 onChange={(val) => onNavItemChange(index, val)}
                 className={styles.navLink}
-                style={{ ...(elements[`navItem-${index}`]?.style || {}), ...(elements[`navItem-${index}`]?.textStyle || {}) }}
+                style={{
+                  ...(elements[`navItem-${index}`]?.style || {}),
+                  ...(elements[`navItem-${index}`]?.textStyle || {}),
+                }}
               />
             </li>
           ))}
         </ul>
       )}
 
-      {/* Optional Copyright / Credits */}
       {copyright && (
         <EditableText
           tag="p"
           text={copyright}
           onChange={onCopyrightChange}
           className={styles.copyright}
-          data-element-id="footer-copyright"
-          style={{ ...(elements['copyright']?.style || {}), ...(elements['copyright']?.textStyle || {}) }}
+          data-element-id="copyright"
+          style={{
+            ...(elements['copyright']?.style || {}),
+            ...(elements['copyright']?.textStyle || {}),
+          }}
         />
       )}
     </footer>
