@@ -11,38 +11,52 @@ function Header1({
   ctaItems = [],
   onCtaChange = () => {},
   style = {},
-  elements = {},   // element-level styles
+  elements = {},
 }) {
   return (
     <header
       className={styles.header}
-      style={{ ...(style || {}) }}
+      style={{
+        ...(style || {}),
+        ...(elements['header']?.style || {})
+      }}
       data-element-id="header"
     >
-      {/* Logo / Title */}
+      {/* Logo / Title Container */}
       <div
         className={styles.logo}
         data-element-id="logo"
-        style={{ flex: '0 0 auto', marginBottom: '0.5rem' }}
+        style={{
+          flex: '0 0 auto',
+          marginBottom: '0.5rem',
+          ...(elements['logo']?.style || {})
+        }}
       >
-      
         <EditableText
           tag="h1"
           text={title}
           onChange={onTitleChange}
           className={styles.title}
           data-element-id="title"
-           style={{
-          ...(elements['title']?.style || {}), // container styles
-          ...(elements['title']?.textStyle || {}) , color: elements['title']?.textStyle?.color || 'inherit',// text-specific styles
-                }}
+          style={{
+            ...(elements['title']?.style || {}),
+            ...(elements['title']?.textStyle || {})
+          }}
         />
       </div>
 
       {/* Navigation */}
-      <nav className={styles.nav} data-element-id="nav" style={{ flex: '1 1 auto', ...(elements['nav']?.style || {}) }}>
+      <nav 
+        className={styles.nav}
+        data-element-id="nav"
+        style={{
+          flex: '1 1 auto',
+          ...(elements['nav']?.style || {})
+        }}
+      >
         <ul
           className={styles.navList}
+          data-element-id="navList"
           style={{
             display: 'flex',
             gap: '1rem',
@@ -50,51 +64,50 @@ function Header1({
             margin: 0,
             padding: 0,
             listStyle: 'none',
-            ...(elements['nav']?.listStyle || {}),
+            ...(elements['navList']?.style || {})
           }}
         >
           {navItems.map((item, index) => (
-            <li key={item.id || index} data-element-id={`navItem-${index}`}
-  style={{ ...(elements[`navItem-${index}`]?.style || {}) }} >
+            <li 
+              key={item.id || index}
+              data-element-id={`navItem-${index}`}
+              style={{ ...(elements[`navItem-${index}`]?.style || {}) }}
+            >
               <EditableText
                 tag="a"
                 text={item.content}
                 onChange={(val) => onNavItemChange(index, val)}
                 className={styles.navLink}
-                
-                 
-  style={{ ...(elements[`navItem-${index}`]?.style || {}), ...(elements[`navItem-${index}`]?.textStyle || {}) }}
-                
+                style={{
+                  // FIXED: Only use textStyle for text styling
+                  ...(elements[`navItem-${index}`]?.textStyle || {})
+                }}
               />
             </li>
           ))}
         </ul>
       </nav>
 
-   {/* CTA buttons */}
-{/* Single CTA button */}
-<div
-className = {styles.ctaButton}
-  data-element-id="cta"
-  style={{
-    ...(elements['cta']?.style || {}), // container styles: background, padding, border, etc.
-    display: 'inline-block',           // ensures background applies correctly
-  }}
->
-  <EditableText
-    tag="span"
-    text={ctaItems[0]?.content || "CTA"} // single CTA text
-    onChange={(val) => onCtaChange(0, val)}
-    style={{
-      ...(elements['cta']?.textStyle || {}), // only text styles: color, fontSize, fontWeight
-    }}
-  />
-</div>
-
-
-
-
-      
+      {/* CTA Button */}
+      <div 
+        className={styles.ctaButton}
+        data-element-id="cta"
+        style={{
+          display: 'inline-block',
+          // FIXED: Use style for container styling
+          ...(elements['cta']?.style || {})
+        }}
+      >
+        <EditableText
+          tag="span"
+          text={ctaItems[0]?.content || "CTA"}
+          onChange={(val) => onCtaChange(0, val)}
+          style={{
+            // FIXED: Use textStyle for text styling
+            ...(elements['cta']?.textStyle || {})
+          }}
+        />
+      </div>
     </header>
   );
 }

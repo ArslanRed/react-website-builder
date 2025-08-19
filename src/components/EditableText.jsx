@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 
-export default function EditableText({ tag = 'p', text, onChange, className = '', style = {} }) {
+export default function EditableText({ tag = 'p', text, onChange, className = '', style = {}, 'data-element-id': dataElementId, ...rest}) {
   const Tag = tag;
   const ref = useRef(null);
 
@@ -26,6 +26,8 @@ export default function EditableText({ tag = 'p', text, onChange, className = ''
       tabIndex={0}
       spellCheck={false}
       style={style}
+       data-element-id={dataElementId} // <- forward it
+      {...rest} 
     />
   );
 }

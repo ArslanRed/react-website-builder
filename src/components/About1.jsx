@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import EditableText from "./EditableText";
-import EditableImage from "./EditableElement"; // ✅ default export is EditableImage
+import EditableImage from "./EditableElement";
 import styles from "../styles/About1.module.css";
 
 function About1({
@@ -18,17 +18,21 @@ function About1({
   return (
     <section
       className={styles.about}
-      style={{ ...(style || {}) }}
-      data-element-id="about"
+      style={{
+        ...(style || {}),
+        // FIXED: Only use style for section container, not textStyle
+        ...(elements['about1']?.style || {})
+      }}
+      data-element-id="about1"
     >
       {/* Editable Image */}
       <EditableImage
         src={imageSrc}
         onChange={onImageChange}
-        className={styles.imageWrapper} // wrapper styles
-        imgClassName={styles.image}    // inner <img> gets full size & object-fit
+        className={styles.imageWrapper}
+        imgClassName={styles.image}
         style={{ ...(elements["image"]?.style || {}) }}
-        data-element-id="about-image"
+        data-element-id="image"
       />
 
       {/* Editable Heading */}
@@ -41,7 +45,7 @@ function About1({
           ...(elements["heading"]?.style || {}),
           ...(elements["heading"]?.textStyle || {}),
         }}
-        data-element-id="about-heading"
+        data-element-id="heading"
       />
 
       {/* Editable Paragraph */}
@@ -54,15 +58,17 @@ function About1({
           ...(elements["text"]?.style || {}),
           ...(elements["text"]?.textStyle || {}),
         }}
-        data-element-id="about-text"
+        data-element-id="text"
       />
 
       {/* Optional Children Wrapper */}
       {children && (
         <div
           className={styles.childrenWrapper}
-          style={{ ...(elements["childrenWrapper"]?.style || {}) }}
-          data-element-id="about-children"
+          style={{
+            ...(elements["childrenWrapper"]?.style || {})
+          }}
+          data-element-id="childrenWrapper"
         >
           {children}
         </div>
